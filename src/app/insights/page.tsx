@@ -1,44 +1,27 @@
-"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
-import NeighborhoodInsightsForm from '@/components/insights/NeighborhoodInsightsForm';
-import NeighborhoodInsightsDisplay from '@/components/insights/NeighborhoodInsightsDisplay';
-import { neighborhoodInsights, type NeighborhoodInsightsOutput } from '@/ai/flows/neighborhood-insights'; // This is a server action
+import React, { Suspense } from 'react';
+import InsightsPageClient from './InsightsPageClient';
+import type { Metadata } from 'next';
+import { Loader2 } from 'lucide-react';
+
+export const metadata: Metadata = {
+  title: 'Neighborhood Insights | Albatross Realtor',
+  description: 'Get AI-powered insights on schools, amenities, and market trends for any neighborhood.',
+};
+
+function InsightsLoading() {
+    return (
+        <div className="flex items-center justify-center min-h-[50vh]">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="ml-4 text-muted-foreground">Loading Insights Tool...</p>
+        </div>
+    )
+}
 
 export default function InsightsPage() {
-  const [insights, setInsights] = useState<NeighborhoodInsightsOutput | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const searchParams = useSearchParams();
-  const [defaultLocation, setDefaultLocation] = useState('');
-
-  useEffect(() => {
-    const locationFromQuery = searchParams.get('location');
-    if (locationFromQuery) {
-      setDefaultLocation(locationFromQuery);
-    }
-  }, [searchParams]);
-
-  const handleInsightsGenerated = (generatedInsights: NeighborhoodInsightsOutput | null, errorMessage?: string) => {
-    setInsights(generatedInsights);
-    setError(errorMessage || null);
-  };
-
-  // The neighborhoodInsights function is a server action, so it can be passed directly.
-  // No need to wrap it further unless specific client-side logic is needed before calling.
-  const generateInsightsAction = async (input: { location: string }): Promise<NeighborhoodInsightsOutput> => {
-    return neighborhoodInsights(input);
-  };
-
-
   return (
-    <div className="space-y-8 py-8">
-      <NeighborhoodInsightsForm 
-        onInsightsGenerated={handleInsightsGenerated} 
-        defaultLocation={defaultLocation}
-        generateInsightsAction={generateInsightsAction}
-      />
-      { (insights || error) && <NeighborhoodInsightsDisplay insights={insights} error={error} /> }
-    </div>
+    <Suspense fallback={<InsightsLoading />}>
+      <InsightsPageClient />
+    </Suspense>
   );
 }

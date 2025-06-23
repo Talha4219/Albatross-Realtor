@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 import {
   Home,
   Search,
@@ -53,7 +54,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { title: 'Home', href: '/' },
+  // { title: 'Home', href: '/' },
   {
     title: 'Properties',
     subItems: [
@@ -225,8 +226,15 @@ export default function Header() {
                 <SheetHeader className="border-b p-4 shrink-0">
                   <SheetTitle className="flex items-center gap-2">
                      <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
-                        <Home className="h-7 w-7 text-primary" />
-                        <span className="text-xl font-headline font-semibold text-foreground">Albatross Realtor</span>
+                     <Image
+                          src="/logo.png" // Path to the image
+                          alt="Albatross realtor"
+                          width={200} // Desired width
+                          height={100} // Desired height
+                          priority // Optional: Preloads the image for better performance
+                        />
+                        {/* <Home className="h-7 w-7 text-primary" />
+                        <span className="text-xl font-headline font-semibold text-foreground">Albatross Realtor</span> */}
                     </Link>
                   </SheetTitle>
                 </SheetHeader>
@@ -243,8 +251,15 @@ export default function Header() {
             </Sheet>
           </div>
           <Link href="/" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
-            <Home className="h-8 w-8 text-primary hidden sm:block" />
-            <h1 className="text-2xl font-headline font-semibold">Albatross Realtor</h1>
+          <Image
+                          src="/logo.png" // Path to the image
+                          alt="Albatross realtor"
+                          width={200} // Desired width
+                          height={100} // Desired height
+                          priority // Optional: Preloads the image for better performance
+                        />
+            {/* <Home className="h-8 w-8 text-primary hidden sm:block" />
+            <h1 className="text-2xl font-headline font-semibold">Albatross Realtor</h1> */}
           </Link>
         </div>
 
