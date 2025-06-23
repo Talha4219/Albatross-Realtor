@@ -1,36 +1,64 @@
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Building, Sparkles, CalendarDays, Users, ExternalLink } from 'lucide-react';
-import Image from 'next/image';
+"use client";
 
-// Mock data for placeholder projects
-const mockProjects = [
-  {
-    id: 'proj1',
-    name: 'Skyline Towers',
-    developer: 'Prestige Developers Inc.',
-    location: 'Metropolis Downtown',
-    type: 'Luxury Apartments',
-    timeline: 'Completion Q4 2025',
-    amenities: ['Rooftop Pool', 'Gym', 'Concierge', 'Smart Homes'],
-    imageUrl: 'https://placehold.co/600x400.png',
-    dataAiHint: 'modern building apartment'
-  },
-  {
-    id: 'proj2',
-    name: 'Greenwood Villas',
-    developer: 'EcoBuild Homes Ltd.',
-    location: 'Suburbia Greens',
-    type: 'Eco-Friendly Villas',
-    timeline: 'Phase 1 Ready Q2 2025',
-    amenities: ['Solar Panels', 'Community Garden', 'Clubhouse', 'Jogging Tracks'],
-    imageUrl: 'https://placehold.co/600x400.png',
-    dataAiHint: 'house development suburban'
-  },
-];
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Sparkles, Building, AlertTriangle } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import ProjectCard from './ProjectCard';
+import type { Project } from '@/types';
+import { useToast } from '@/hooks/use-toast';
 
 export default function NewProjectsListing() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/projects'); // Fetch all projects
+        if (!res.ok) {
+          throw new Error('Failed to fetch new projects');
+        }
+        const data = await res.json();
+        if (data.success) {
+          setProjects(data.data);
+        } else {
+          throw new Error(data.error || 'Could not load projects.');
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
+        setError(errorMessage);
+        toast({
+          title: 'Error Loading Projects',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchProjects();
+  }, [toast]);
+
+  const renderSkeletons = (count: number) => (
+    Array.from({ length: count }).map((_, index) => (
+       <div key={index} className="rounded-lg border bg-card text-card-foreground shadow-sm">
+        <Skeleton className="h-48 w-full rounded-t-lg" />
+        <div className="p-4 space-y-2">
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+          <Skeleton className="h-4 w-full" />
+        </div>
+      </div>
+    ))
+  );
+
   return (
     <div className="space-y-8">
       <Card className="shadow-xl border-none bg-gradient-to-br from-primary/10 via-background to-background">
@@ -48,42 +76,27 @@ export default function NewProjectsListing() {
         </CardHeader>
       </Card>
 
-      {mockProjects.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {mockProjects.map((project) => (
-            <Card key={project.id} className="overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 flex flex-col">
-              <CardHeader className="p-0">
-                <Image 
-                  src={project.imageUrl} 
-                  alt={`Image of ${project.name}`} 
-                  width={600} 
-                  height={350} 
-                  className="w-full h-60 object-cover"
-                  data-ai-hint={project.dataAiHint}
-                />
-              </CardHeader>
-              <CardContent className="p-6 flex-grow">
-                <CardTitle className="font-headline text-2xl text-primary mb-1">{project.name}</CardTitle>
-                <p className="text-sm text-muted-foreground mb-3">by {project.developer}</p>
-                
-                <div className="space-y-2 text-foreground">
-                  <p className="flex items-center gap-2"><Building className="w-4 h-4 text-accent" /> {project.type} in {project.location}</p>
-                  <p className="flex items-center gap-2"><CalendarDays className="w-4 h-4 text-accent" /> {project.timeline}</p>
-                  <div>
-                    <h4 className="font-semibold mt-2 mb-1">Key Amenities:</h4>
-                    <ul className="list-disc list-inside text-sm space-y-0.5">
-                      {project.amenities.slice(0, 3).map(amenity => <li key={amenity}>{amenity}</li>)}
-                      {project.amenities.length > 3 && <li>...and more</li>}
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="p-6 pt-0 border-t mt-auto">
-                <Button className="w-full font-headline">
-                  View Project Details <ExternalLink className="w-4 h-4 ml-2" />
-                </Button>
-              </CardFooter>
-            </Card>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {renderSkeletons(6)}
+        </div>
+      ) : error ? (
+        <Card className="border-destructive bg-destructive/10 text-center py-10">
+          <CardHeader>
+            <AlertTriangle className="mx-auto h-12 w-12 text-destructive" />
+            <CardTitle className="text-destructive">Error Loading Projects</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-destructive-foreground">{error}</p>
+            <Button onClick={() => window.location.reload()} variant="destructive" className="mt-4">
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      ) : projects.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {projects.map((project) => (
+            <ProjectCard key={project.id} project={project} />
           ))}
         </div>
       ) : (
@@ -95,9 +108,6 @@ export default function NewProjectsListing() {
           </p>
         </div>
       )}
-       <CardDescription className="text-center text-sm text-muted-foreground pt-6">
-          Admins will be able to add and manage new projects through a CMS. Project details are illustrative.
-      </CardDescription>
     </div>
   );
 }

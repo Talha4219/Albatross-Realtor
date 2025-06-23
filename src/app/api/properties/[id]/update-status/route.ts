@@ -5,16 +5,14 @@ import Property from '@/models/Property';
 import mongoose from 'mongoose';
 import { z } from 'zod';
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@albatrossrealtor.com';
-
 const UpdateStatusSchema = z.object({
   approvalStatus: z.enum(['Approved', 'Rejected', 'Pending']),
 });
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  const userEmail = request.headers.get('x-user-email');
+  const userRole = request.headers.get('x-user-role');
 
-  if (userEmail !== ADMIN_EMAIL) {
+  if (userRole !== 'admin') {
     return NextResponse.json({ success: false, error: 'Forbidden: Admin access required' }, { status: 403 });
   }
 

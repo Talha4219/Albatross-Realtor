@@ -1,7 +1,7 @@
 
 import mongoose, { Document, Schema, Model } from 'mongoose';
 
-export type UserRole = 'user' | 'agent' | 'admin';
+export type UserRole = 'user' | 'admin';
 
 export interface IUser extends Document {
   id: string;
@@ -9,6 +9,7 @@ export interface IUser extends Document {
   email: string;
   passwordHash: string;
   role: UserRole;
+  profilePictureUrl?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,9 +34,13 @@ const UserSchema = new Schema<IUser>({
   },
   role: {
     type: String,
-    enum: ['user', 'agent', 'admin'],
+    enum: ['user', 'admin'],
     default: 'user',
     required: true,
+  },
+  profilePictureUrl: {
+    type: String,
+    default: '',
   }
 }, {
   timestamps: true,

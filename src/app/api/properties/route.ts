@@ -3,7 +3,6 @@ import { NextResponse, type NextRequest } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Property from '@/models/Property';
 import User from '@/models/User'; 
-import { mockAgents } from '@/lib/mock-data';
 import { z } from 'zod';
 import type { PropertyTypeEnum, PropertyStatusEnum } from '@/types';
 import mongoose from 'mongoose';
@@ -27,41 +26,45 @@ const PropertyAPISchema = z.object({
   yearBuilt: z.coerce.number().optional().nullable(),
   images: z.array(z.string().url()).min(1),
   features: z.array(z.string()).optional(),
-  agentId: z.string().optional().nullable(),
 });
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@albatrossrealtor.com';
-
-
 export async function GET(request: NextRequest) {
-  const userEmail = request.headers.get('x-user-email'); 
-  const submittedById = request.nextUrl.searchParams.get('submittedById');
-  const statusFilter = request.nextUrl.searchParams.get('status') as PropertyStatusEnum | null;
+  const userRole = request.headers.get('x-user-role'); 
+  const { searchParams } = new URL(request.url);
+  const submittedById = searchParams.get('submittedById');
+  const statusFilter = searchParams.get('status') as PropertyStatusEnum | null;
+  const searchQuery = searchParams.get('search');
 
   try {
     await dbConnect();
     
     let query: any = {}; 
     
-    if (userEmail === ADMIN_EMAIL) {
-      // Admin can see all properties, or filter by submittedById if provided
+    if (userRole === 'admin') {
       if (submittedById && mongoose.Types.ObjectId.isValid(submittedById)) {
         query.submittedBy = new mongoose.Types.ObjectId(submittedById);
       }
-      // Admin can also filter by status if provided (e.g. for specific admin views)
       if (statusFilter && propertyStatuses.includes(statusFilter)) {
         query.status = statusFilter;
       }
     } else {
-      // Non-admins only see approved properties
       query.approvalStatus = 'Approved';
-      // If status filter is provided for public view, it must be 'For Sale' or 'For Rent'
       if (statusFilter && (statusFilter === 'For Sale' || statusFilter === 'For Rent')) {
         query.status = statusFilter;
       } else if (statusFilter) {
-        // If any other status is requested by non-admin, return empty or error
-        return NextResponse.json({ success: true, data: [] }, { status: 200 }); // Or 403 Forbidden
+        return NextResponse.json({ success: true, data: [] }, { status: 200 });
       }
+    }
+    
+    if (searchQuery) {
+      const regex = new RegExp(searchQuery, 'i');
+      query.$or = [
+        { address: { $regex: regex } },
+        { city: { $regex: regex } },
+        { state: { $regex: regex } },
+        { zip: { $regex: regex } },
+        { description: { $regex: regex } }
+      ];
     }
 
     const properties = await Property.find(query)
@@ -105,27 +108,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "Invalid input data.", details: validation.error.flatten() }, { status: 400 });
     }
 
-    const { agentId, ...propertyData } = validation.data;
+    const { ...propertyData } = validation.data;
     
-    let agentDetails = null;
-    if (agentId) {
-      const foundAgent = mockAgents.find(a => a.id === agentId); 
-      if (foundAgent) {
-        agentDetails = {
-          id: foundAgent.id,
-          name: foundAgent.name,
-          email: foundAgent.email,
-          phone: foundAgent.phone,
-          imageUrl: foundAgent.imageUrl,
-          isVerified: foundAgent.isVerified,
-          specialty: foundAgent.specialty,
-          rating: foundAgent.rating,
-        };
-      } else {
-         console.warn(`Agent with ID ${agentId} not found in mock data during property submission.`);
-      }
-    }
-
     const newPropertyData: any = {
       ...propertyData,
       images: propertyData.images.filter(img => img.trim() !== ''),
@@ -136,9 +120,6 @@ export async function POST(request: NextRequest) {
       submittedBy: new mongoose.Types.ObjectId(userId) 
     };
 
-    if (agentDetails) {
-      newPropertyData.agent = agentDetails;
-    }
     if (propertyData.yearBuilt === null || propertyData.yearBuilt === undefined) {
       delete newPropertyData.yearBuilt;
     }

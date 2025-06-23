@@ -1,22 +1,9 @@
 
 import mongoose, { Document, Schema, Model, Types } from 'mongoose';
-import type { Property as PropertyType, Agent as AgentType, PropertyTypeEnum, PropertyStatusEnum, PropertyApprovalStatusEnum } from '@/types';
+import type { Property as PropertyType, PropertyTypeEnum, PropertyStatusEnum, PropertyApprovalStatusEnum } from '@/types';
 
-// Define a schema for the embedded Agent
-const AgentSchema = new Schema<AgentType>({
-  id: { type: String, required: true },
-  name: { type: String, required: true },
-  phone: { type: String, required: true },
-  email: { type: String, required: true },
-  imageUrl: String,
-  isVerified: Boolean,
-  specialty: String,
-  rating: Number,
-}, { _id: false });
-
-export interface IProperty extends Omit<PropertyType, 'id' | 'agent' | 'postedDate' | 'propertyType' | 'status' | 'approvalStatus' | 'submittedBy'>, Document {
+export interface IProperty extends Omit<PropertyType, 'id' | 'postedDate' | 'propertyType' | 'status' | 'approvalStatus' | 'submittedBy'>, Document {
   id?: string;
-  agent?: AgentType; // Embedded agent, can be optional
   postedDate: Date;
   propertyType: PropertyTypeEnum;
   status: PropertyStatusEnum;
@@ -39,7 +26,6 @@ const PropertySchema = new Schema<IProperty>({
   propertyType: { type: String, enum: ['House', 'Apartment', 'Condo', 'Townhouse', 'Land'], required: true },
   yearBuilt: Number,
   features: [{ type: String }],
-  agent: { type: AgentSchema, required: false },
   latitude: Number,
   longitude: Number,
   status: { type: String, enum: ['For Sale', 'For Rent', 'Sold', 'Pending Approval', 'Draft'], required: true, default: 'Pending Approval' },

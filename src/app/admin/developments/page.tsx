@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from 'react'; // Added useCallback
+import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -26,15 +27,27 @@ export default function AdminDevelopmentsPage() {
   const [developments, setDevelopments] = useState<DevelopmentType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { token, isLoading: isAuthLoading, logout } = useAuth(); // Added logout
+  const { token, isLoading: isAuthLoading, logout } = useAuth();
   const { toast } = useToast();
   const [developmentToDelete, setDevelopmentToDelete] = useState<DevelopmentType | null>(null);
+  
+  const searchParams = useSearchParams();
+  const statusFilter = searchParams.get('status');
+
+  const getPageTitle = () => {
+    if (statusFilter === 'Trending') return 'Trending Projects';
+    if (statusFilter === 'Upcoming') return 'Upcoming Projects';
+    return 'All Projects';
+  };
+
+  const getPageDescription = () => {
+    if (statusFilter === 'Trending') return 'Manage the most popular new developments.';
+    if (statusFilter === 'Upcoming') return 'Oversee projects that are launching soon.';
+    return 'Oversee and add new real estate projects and developments.';
+  }
 
   const fetchDevelopments = useCallback(async () => {
-    // Token check within useEffect is primary; this is a secondary guard if called directly.
-    // If token is missing when this function is actually invoked, it's an issue.
-    // However, the main handling for missing token after auth load is in useEffect.
-    if (!token && !isAuthLoading) { // Check isAuthLoading here too
+    if (!token && !isAuthLoading) {
         logout();
         return;
     }
@@ -42,7 +55,8 @@ export default function AdminDevelopmentsPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/developments', {
+      const url = statusFilter ? `/api/admin/developments?status=${statusFilter}` : '/api/admin/developments';
+      const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
 
@@ -62,13 +76,12 @@ export default function AdminDevelopmentsPage() {
                 }
             }
         } catch (e) {
-            // Failed to parse error response body, stick with the status text
+            // Failed to parse error response body
         }
         
-        // If it's an auth error (401/403) or contains specific messages, logout
         if (res.status === 401 || res.status === 403 || errorDetailMessage.includes("Authorization header missing") || errorDetailMessage.includes("token invalid/expired")) {
           logout();
-          return; // Stop further processing as user will be redirected
+          return;
         }
         throw new Error(errorDetailMessage);
       }
@@ -80,16 +93,13 @@ export default function AdminDevelopmentsPage() {
         throw new Error(data.error || 'API returned success:false but no error message');
       }
     } catch (err) {
-      // This catch block will now primarily handle network errors or non-auth API errors.
-      // Auth errors should have been handled by logout() and return.
       if (err instanceof Error) {
-        console.error("Failed to fetch developments (after auth check):", err);
+        console.error("Failed to fetch developments:", err);
         let userFriendlyMessage = err.message;
         if (err instanceof TypeError && err.message.toLowerCase().includes('failed to fetch')) {
           userFriendlyMessage = 'Could not connect to the server. Please check your network connection and ensure the server is running correctly. This may be due to a missing server configuration (e.g., MONGODB_URI).';
         }
         setError(userFriendlyMessage);
-        // Avoid toasting if it was an auth error that somehow slipped through
         if (!(userFriendlyMessage.includes("Authorization header missing") || userFriendlyMessage.includes("token invalid/expired"))) {
              toast({ title: "Error Fetching Developments", description: userFriendlyMessage, variant: "destructive" });
         }
@@ -101,19 +111,15 @@ export default function AdminDevelopmentsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [token, logout, toast, isAuthLoading]); // Added isAuthLoading to useCallback deps
+  }, [token, logout, toast, isAuthLoading, statusFilter]);
   
   useEffect(() => {
-    if (!isAuthLoading) { // Only proceed once auth state is determined
-        if (token) {
-            fetchDevelopments();
-        } else {
-            // If auth has loaded and there is no token, user should be logged out.
-            // AdminLayout should also catch this, but direct logout here is more immediate.
-            logout();
-        }
+    if (!isAuthLoading && token) {
+        fetchDevelopments();
+    } else if (!isAuthLoading && !token) {
+        logout();
     }
-  }, [token, isAuthLoading, logout, fetchDevelopments]); // Added logout and fetchDevelopments
+  }, [token, isAuthLoading, logout, fetchDevelopments, statusFilter]);
 
   const handleDeleteDevelopment = async () => {
     if (!developmentToDelete || !token) {
@@ -133,7 +139,7 @@ export default function AdminDevelopmentsPage() {
         setDevelopments(prev => prev.filter(dev => dev.id !== developmentToDelete.id));
       } else {
         if (response.status === 401 || response.status === 403) {
-            logout(); // Logout on auth error during delete
+            logout();
             return;
         }
         throw new Error(result.error || "Failed to delete development.");
@@ -165,19 +171,19 @@ export default function AdminDevelopmentsPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Manage New Developments</h1>
-          <p className="text-muted-foreground">Oversee and add new real estate projects and developments.</p>
+          <h1 className="text-3xl font-bold tracking-tight">{getPageTitle()}</h1>
+          <p className="text-muted-foreground">{getPageDescription()}</p>
         </div>
         <Button asChild>
           <Link href="/admin/developments/new">
-            <PlusCircle className="mr-2 h-4 w-4" /> Add New Development
+            <PlusCircle className="mr-2 h-4 w-4" /> Add New Project
           </Link>
         </Button>
       </div>
 
       {error && (
         <Card className="border-destructive bg-destructive/10">
-          <CardHeader><CardTitle className="font-headline text-destructive flex items-center gap-2"><AlertTriangle className="w-6 h-6" />Error Loading Developments</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="font-headline text-destructive flex items-center gap-2"><AlertTriangle className="w-6 h-6" />Error Loading Projects</CardTitle></CardHeader>
           <CardContent>
             <p className="text-destructive-foreground break-all">{error}</p>
             <Button onClick={fetchDevelopments} variant="outline" className="mt-4 border-destructive text-destructive-foreground hover:bg-destructive/30" disabled={isLoading}>
@@ -189,8 +195,8 @@ export default function AdminDevelopmentsPage() {
 
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Development Listings</CardTitle>
-          <CardDescription>{isLoading ? 'Loading developments...' : `Showing ${developments.length} developments.`}</CardDescription>
+          <CardTitle>Project Listings</CardTitle>
+          <CardDescription>{isLoading ? 'Loading projects...' : `Showing ${developments.length} projects.`}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading && !error ? (
@@ -198,8 +204,8 @@ export default function AdminDevelopmentsPage() {
           ) : !error && developments.length === 0 && !isLoading ? (
             <div className="text-center py-12">
               <Sparkles className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-sm font-medium text-foreground">No developments found</h3>
-              <p className="mt-1 text-sm text-muted-foreground">Get started by adding a new development project.</p>
+              <h3 className="mt-2 text-sm font-medium text-foreground">No projects found</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Get started by adding a new project or adjust your filters.</p>
             </div>
           ) : !error && developments.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -240,7 +246,7 @@ export default function AdminDevelopmentsPage() {
         </CardContent>
       </Card>
        <p className="text-xs text-muted-foreground text-center pt-4">
-        Edit functionality for developments will be added later.
+        Edit functionality for projects will be added later.
       </p>
     </div>
   );

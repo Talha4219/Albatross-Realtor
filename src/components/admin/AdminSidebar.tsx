@@ -3,25 +3,35 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, LayoutGrid, Users, Building, Settings, ShieldAlert, UserCircle, LogOut, Sparkles } from 'lucide-react'; // Added Sparkles
+import { Home, LayoutGrid, Users, Building, Settings, ShieldAlert, UserCircle, LogOut, Sparkles, BookText, PlusCircle, TrendingUp, CalendarClock, MessageSquareQuote } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar'; 
+import { Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroupLabel } from '@/components/ui/sidebar'; 
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
+import { useAuth } from '@/contexts/AuthContext';
 
 const adminNavItems = [
-  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutGrid },
-  { href: '/admin/properties', label: 'Manage Properties', icon: Building },
-  { href: '/admin/developments', label: 'New Developments', icon: Sparkles }, // New Item
-  { href: '/admin/agents', label: 'Manage Agents', icon: Users },
-  { href: '/admin/users', label: 'Manage Users', icon: UserCircle },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
+  { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutGrid, type: 'item' },
+  { href: '/admin/properties', label: 'Manage Properties', icon: Building, type: 'item' },
+  { type: 'separator' },
+  { type: 'heading', label: 'Projects' },
+  { href: '/admin/developments', label: 'All Projects', icon: Sparkles, isSubItem: true, type: 'item' },
+  { href: '/admin/developments?status=Trending', label: 'Trending', icon: TrendingUp, isSubItem: true, type: 'item' },
+  { href: '/admin/developments?status=Upcoming', label: 'Upcoming', icon: CalendarClock, isSubItem: true, type: 'item' },
+  { href: '/admin/developments/new', label: 'Add New Project', icon: PlusCircle, isSubItem: true, type: 'item' },
+  { type: 'separator' },
+  { href: '/admin/blog', label: 'Manage Blog', icon: BookText, type: 'item' },
+  { href: '/blog/new', label: 'Create Post', icon: PlusCircle, type: 'item' },
+  { type: 'separator' },
+  { href: '/admin/testimonials', label: 'Manage Testimonials', icon: MessageSquareQuote, type: 'item' },
+  { type: 'separator' },
+  { href: '/admin/users', label: 'Manage Users', icon: UserCircle, type: 'item' },
+  { href: '/admin/settings', label: 'Settings', icon: Settings, type: 'item' },
 ];
 
 export default function AdminSidebar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth(); // Get user object and logout from context
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -29,7 +39,6 @@ export default function AdminSidebar() {
 
   const adminInitials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 
                        user?.email ? user.email.substring(0, 2).toUpperCase() : "AD";
-
 
   return (
     <Sidebar side="left" variant="sidebar" collapsible="icon">
@@ -43,20 +52,31 @@ export default function AdminSidebar() {
       </SidebarHeader>
       <SidebarContent className="flex-grow">
         <SidebarMenu>
-          {adminNavItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
-              <SidebarMenuButton
-                asChild
-                isActive={pathname === item.href || (item.href !== '/admin/dashboard' && pathname.startsWith(item.href))}
-                tooltip={{children: item.label}}
-              >
-                <Link href={item.href}>
-                  <item.icon />
-                  <span>{item.label}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {adminNavItems.map((item, index) => {
+            if (item.type === 'separator') {
+              return <SidebarSeparator key={`sep-${index}`} className="my-1" />;
+            }
+            if (item.type === 'heading') {
+              return <SidebarGroupLabel key={`head-${index}`} className="px-2 pt-2 group-data-[collapsible=icon]:hidden">{item.label}</SidebarGroupLabel>;
+            }
+            if (item.type === 'item') {
+              return (
+                <SidebarMenuItem key={item.href} className={cn(item.isSubItem && "group-data-[state=expanded]:pl-4")}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href || (item.href && item.href !== '/admin/dashboard' && pathname.startsWith(item.href))}
+                    tooltip={{children: item.label}}
+                  >
+                    <Link href={item.href!}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            }
+            return null;
+          })}
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border p-2 space-y-2">
@@ -82,4 +102,3 @@ export default function AdminSidebar() {
     </Sidebar>
   );
 }
-

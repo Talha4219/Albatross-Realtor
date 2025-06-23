@@ -8,7 +8,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import Header from '@/components/layout/Header';
 import { ThemeProvider } from "@/components/theme/ThemeProvider"; 
 import Footer from '@/components/layout/Footer';
-import AIChatWidgetPlaceholder from '@/components/chat/AIChatWidgetPlaceholder'; 
+import AIChatWidget from '@/components/chat/AIChatWidget'; 
 
 export const metadata: Metadata = {
   title: 'Albatross Realtor',
@@ -43,7 +43,7 @@ export default function RootLayout({
               </main>
               <Footer />
               <Toaster />
-              <AIChatWidgetPlaceholder /> 
+              <AIChatWidget /> 
             </SavedPropertiesProvider>
           </AuthProvider>
         </ThemeProvider>

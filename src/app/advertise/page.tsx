@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Megaphone } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Advertise With Us | Albatross Realtor',
+  description: 'Showcase your properties or services to a targeted real estate audience.',
+};
 
 export default function AdvertisePage() {
   return (

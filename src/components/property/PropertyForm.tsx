@@ -36,7 +36,6 @@ const PropertyFormSchema = z.object({
   }),
   images: z.array(z.string().url("Must be a valid URL.").min(1, "Image URL cannot be empty.")).min(1, "At least one image URL is required."),
   features: z.array(z.string().min(1, "Feature cannot be empty.")).optional(),
-  agentId: z.string().optional().nullable(), 
 });
 
 export type PropertyFormData = z.infer<typeof PropertyFormSchema>;
@@ -66,7 +65,6 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
       yearBuilt: null,
       images: [''],
       features: [''],
-      agentId: null,
       ...initialData, // Spread initialData here to override defaults if provided
     },
   });
@@ -85,7 +83,7 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
       form.reset({
         address: '', city: '', state: '', zip: '', price: 0, bedrooms: 0, bathrooms: 0, areaSqFt: 0,
         description: '', propertyType: 'House', status: 'For Sale', yearBuilt: null,
-        images: [''], features: [''], agentId: null,
+        images: [''], features: [''],
         ...filteredInitialData // Spread the potentially modified initialData
       });
       // Also update local state for dynamic fields if they are derived from initialData
@@ -258,25 +256,6 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
               </FormItem>
             )}
           />
-            <FormField
-            control={form.control}
-            name="agentId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Agent ID (Optional)</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Enter Agent ID if applicable" 
-                    {...field}
-                    value={field.value ?? ''} // Ensure value is not null for input
-                    onChange={e => field.onChange(e.target.value === '' ? null : e.target.value)}
-                  />
-                </FormControl>
-                <FormMessage />
-                <p className="text-xs text-muted-foreground">Leave empty if submitted by owner or to assign later.</p>
-              </FormItem>
-            )}
-          />
         </div>
 
         <FormField
@@ -398,4 +377,3 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
     </Form>
   );
 }
-

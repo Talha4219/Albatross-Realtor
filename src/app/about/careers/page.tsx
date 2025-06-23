@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Briefcase } from 'lucide-react'; // Using Briefcase, as BriefcaseBusiness is not in lucide-react
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Careers | Albatross Realtor',
+  description: 'Explore job openings and start your career in real estate with Albatross Realtor.',
+};
 
 export default function CareersPage() {
   return (

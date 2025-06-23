@@ -4,11 +4,11 @@ import dbConnect from '@/lib/mongodb';
 import ProjectModel from '@/models/Project';
 import mongoose from 'mongoose';
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@albatrossrealtor.com';
+const ADMIN_ROLE = 'admin';
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const requestingUserEmail = request.headers.get('x-user-email');
-  if (requestingUserEmail !== ADMIN_EMAIL) {
+  const requestingUserRole = request.headers.get('x-user-role');
+  if (requestingUserRole !== ADMIN_ROLE) {
     return NextResponse.json({ success: false, error: 'Forbidden: Admin access required' }, { status: 403 });
   }
 

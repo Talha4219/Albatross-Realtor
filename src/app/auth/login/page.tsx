@@ -22,8 +22,6 @@ const loginFormSchema = z.object({
 
 type LoginFormData = z.infer<typeof loginFormSchema>;
 
-const ADMIN_EMAIL = 'admin@albatrossrealtor.com';
-
 export default function LoginPage() {
   const [apiError, setApiError] = useState<string | null>(null);
   const { login, isLoading, user } = useAuth(); // user from useAuth can be used for conditional rendering
@@ -41,7 +39,7 @@ export default function LoginPage() {
     setApiError(null);
     const loggedInUser = await login(data.email, data.password);
     if (loggedInUser) {
-      if (loggedInUser.email === ADMIN_EMAIL) {
+      if (loggedInUser.role === 'admin') {
         router.push('/admin/dashboard');
       } else {
         router.push('/'); // Redirect regular users to homepage
@@ -58,9 +56,8 @@ export default function LoginPage() {
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-headline">Log In</CardTitle>
         <CardDescription>Access your Albatross Realtor account or admin dashboard.</CardDescription>
-         {/* For demo purposes, admin email hint can be kept if needed */}
          <CardDescription className="text-xs text-muted-foreground pt-2">
-          (Admin demo: <strong>admin@albatrossrealtor.com</strong>. Regular users can sign up.)
+          (Log in with an admin account to access the dashboard. Other users can sign up.)
         </CardDescription>
       </CardHeader>
       <Form {...form}>

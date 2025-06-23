@@ -3,7 +3,6 @@ import { NextResponse, type NextRequest } from 'next/server';
 import * as jose from 'jose'; 
 
 const JWT_SECRET_STRING = process.env.JWT_SECRET;
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@albatrossrealtor.com'; 
 
 async function verifyToken(token: string): Promise<jose.JWTPayload | null> {
   if (!JWT_SECRET_STRING) {
@@ -29,7 +28,6 @@ export async function middleware(request: NextRequest) {
     '/api/auth/signup',
   ];
 
-  // Check if the current path is a public API route
   if (publicApiRoutes.some(route => pathname.startsWith(route))) {
     return NextResponse.next();
   }
@@ -38,63 +36,63 @@ export async function middleware(request: NextRequest) {
   const authHeader = request.headers.get('authorization');
   let userId: string | null = null;
   let userEmail: string | null = null;
-  let userRole: string | null = null; // Add role
+  let userRole: string | null = null;
+  let userName: string | null = null;
 
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
     const decodedPayload = await verifyToken(token);
     if (decodedPayload && decodedPayload.userId && typeof decodedPayload.userId === 'string') {
       userId = decodedPayload.userId;
-      requestHeaders.set('x-user-id', userId); // Standardize to x-user-id
+      requestHeaders.set('x-user-id', userId);
       if (decodedPayload.email && typeof decodedPayload.email === 'string') {
         userEmail = decodedPayload.email;
         requestHeaders.set('x-user-email', userEmail);
       }
-      if (decodedPayload.role && typeof decodedPayload.role === 'string') { // Extract role
+      if (decodedPayload.name && typeof decodedPayload.name === 'string') {
+        userName = decodedPayload.name;
+        requestHeaders.set('x-user-name', userName);
+      }
+      if (decodedPayload.role && typeof decodedPayload.role === 'string') {
         userRole = decodedPayload.role;
         requestHeaders.set('x-user-role', userRole);
       }
     }
   }
   
-  // Allow public GET /api/properties (for listing approved properties)
-  // Also allow public GET /api/properties/[id] (for viewing a single approved property)
-  if (pathname.startsWith('/api/properties') && request.method === 'GET') {
-    // No specific JWT check needed for public GETs here, but headers are passed along if token was valid
+  // Public GET routes for viewing data
+  const isPublicGet = request.method === 'GET' && (
+    pathname.startsWith('/api/properties') ||
+    pathname.startsWith('/api/blog') || // Allow public GET for all blog content
+    pathname.startsWith('/api/projects') ||
+    pathname.startsWith('/api/testimonials')
+  );
+  if (isPublicGet) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  // Protected API routes:
-  // - /api/admin/*
-  // - /api/properties (POST, PUT, DELETE to / or /[id])
-  // - /api/my-properties
-  // - /api/properties/[id]/update-status
+  // Protected API routes
   const isAdminRoute = pathname.startsWith('/api/admin/');
   const isPropertyMutation = pathname.startsWith('/api/properties') && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method);
+  const isBlogPostCreation = pathname === '/api/blog/posts' && request.method === 'POST';
   const isMyPropertiesRoute = pathname.startsWith('/api/my-properties');
   const isUpdateStatusRoute = pathname.startsWith('/api/properties/') && pathname.endsWith('/update-status') && request.method === 'PATCH';
 
-
-  if (isAdminRoute || isPropertyMutation || isMyPropertiesRoute || isUpdateStatusRoute) {
-    if (!userId) { // No valid token found or token verification failed
+  if (isAdminRoute || isPropertyMutation || isBlogPostCreation || isMyPropertiesRoute || isUpdateStatusRoute) {
+    if (!userId) {
       return new NextResponse(JSON.stringify({ success: false, error: 'Authorization header missing, malformed, or token invalid/expired.' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
     }
 
-    // Admin-specific route checks for /api/admin/* and /api/properties/[id]/update-status
     if (isAdminRoute || isUpdateStatusRoute) {
-      if (userEmail !== ADMIN_EMAIL) { // or check userRole === 'admin'
+      if (userRole !== 'admin') {
         return new NextResponse(JSON.stringify({ success: false, error: 'Forbidden: Admin access required' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
       }
     }
-    
-    // For other protected property mutations (POST /api/properties, PUT/DELETE /api/properties/[id])
-    // and /api/my-properties, just being authenticated (userId present) is enough for middleware.
-    // The route handlers themselves will perform finer-grained checks (e.g., ownership for PUT/DELETE, admin role for certain actions).
 
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  // For any other API routes not covered, default to allowing (or add more specific rules)
+  // For any other API routes not covered, default to allowing
   return NextResponse.next();
 }
 

@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, ShoppingCart } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Buying Guides | Albatross Realtor',
+  description: 'Your comprehensive resource for navigating the property buying process from start to finish.',
+};
 
 export default function BuyingGuidesPage() {
   return (

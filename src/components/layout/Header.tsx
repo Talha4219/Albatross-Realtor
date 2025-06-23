@@ -2,16 +2,11 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import {
   Home,
-  Building2,
-  Sparkles,
-  Users,
-  Library,
   Search,
   UserCircle2,
   Menu,
@@ -21,13 +16,7 @@ import {
   LogOut,
   LayoutDashboard,
   UserPlus,
-  Map, // Added Map icon
-  TrendingUp, // Added TrendingUp icon
-  CalendarClock, // Added CalendarClock icon
-  Briefcase, // Added Briefcase icon (used for Agent Tools)
-  BookOpen, // Added BookOpen icon (used for Blog)
-  BarChart3, // Added BarChart3 icon (used for Market Trends)
-  Compass, // Added Compass icon (used for Guides)
+  FilePlus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,61 +38,47 @@ import {
 } from '@/components/ui/sheet';
 import { useAuth } from '@/contexts/AuthContext'; 
 import { ThemeToggle } from '@/components/theme/ThemeToggle'; 
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface NavSubItem {
   title: string;
   href: string;
   description?: string;
-  icon?: React.ElementType;
 }
 
 interface NavItem {
   title: string;
   href?: string;
-  icon?: React.ElementType;
   subItems?: NavSubItem[];
 }
 
 const navItems: NavItem[] = [
-  // { title: 'Home', href: '/', icon: Home },
+  { title: 'Home', href: '/' },
   {
     title: 'Properties',
-    icon: Building2,
     subItems: [
-      { title: 'For Sale', href: '/properties/for-sale', description: 'Homes, plots, commercial', icon: Building2 },
-      { title: 'For Rent', href: '/properties/for-rent', description: 'Houses, apartments, shops', icon: Building2 },
-      { title: 'Map Search', href: '/properties/map-search', description: 'Visualize on map', icon: Map },
+      { title: 'For Sale', href: '/properties/for-sale', description: 'Homes, plots, commercial' },
+      { title: 'For Rent', href: '/properties/for-rent', description: 'Houses, apartments, shops' },
+      { title: 'Map Search', href: '/properties/map-search', description: 'Visualize on map' },
     ],
   },
   {
     title: 'New Projects',
-    icon: Sparkles,
     subItems: [
-      { title: 'Trending Projects', href: '/new-projects/trending', description: 'Popular developments', icon: TrendingUp },
-      { title: 'Upcoming Projects', href: '/new-projects/upcoming', description: 'New launches', icon: CalendarClock },
-      { title: 'All New Projects', href: '/new-projects', description: 'View all developments', icon: Sparkles },
-    ],
-  },
-  {
-    title: 'Agents',
-    icon: Users,
-    subItems: [
-      { title: 'Find an Agent', href: '/agents/find', description: 'Search verified agents', icon: Users },
-      { title: 'Agent Tools', href: '/agents/tools', description: 'CRM and advertising (for agents)', icon: Briefcase },
+      { title: 'Trending Projects', href: '/new-projects/trending', description: 'Popular developments' },
+      { title: 'Upcoming Projects', href: '/new-projects/upcoming', description: 'New launches' },
+      { title: 'All New Projects', href: '/new-projects', description: 'View all developments' },
     ],
   },
   {
     title: 'Resources',
-    icon: Library,
     subItems: [
-      { title: 'Blog', href: '/blog', description: 'Real estate articles', icon: BookOpen },
-      { title: 'Market Trends', href: '/market-trends', description: 'Price index and insights', icon: BarChart3 },
-      { title: 'Guides', href: '/guides', description: 'Buyer, seller, renter guides', icon: Compass },
+      { title: 'Blog', href: '/blog', description: 'Real estate articles' },
+      { title: 'Market Trends', href: '/market-trends', description: 'Price index and insights' },
+      { title: 'Guides', href: '/guides', description: 'Buyer, seller, renter guides' },
     ],
   },
 ];
-
-const ADMIN_EMAIL = 'admin@albatrossrealtor.com';
 
 export default function Header() {
   const pathname = usePathname();
@@ -146,14 +121,13 @@ export default function Header() {
             href={item.href}
             onClick={() => isMobile && setIsMobileMenuOpen(false)}
             className={cn(
-              "text-sm font-medium transition-colors py-2 px-3 rounded-md flex items-center gap-1.5",
+              "text-sm font-medium transition-colors py-2 px-3 rounded-md",
               pathname === item.href
                 ? "bg-primary/10 text-primary dark:bg-primary/20"
                 : "text-foreground/70 hover:text-foreground hover:bg-muted/50",
               isMobile ? "text-base w-full justify-start" : ""
             )}
           >
-            {item.icon && <item.icon className="h-4 w-4" />}
             {item.title}
           </Link>
         ) : (
@@ -162,17 +136,16 @@ export default function Header() {
               <Button
                 variant="ghost"
                 className={cn(
-                  "text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-muted/50 py-2 px-3 flex items-center gap-1.5",
+                  "text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-muted/50 py-2 px-3 flex items-center",
                   isMobile ? "text-base w-full justify-start" : "",
                   item.subItems && item.subItems.some(sub => sub.href && (pathname.startsWith(sub.href) || (sub.href === '/new-projects' && pathname === '/new-projects'))) ? "bg-primary/10 text-primary dark:bg-primary/20" : ""
                 )}
               >
-                {item.icon && <item.icon className="h-4 w-4" />}
                 {item.title}
                 {!isMobile && <ChevronDown className="h-4 w-4 ml-1 opacity-70" />}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-64"> {/* Increased width for descriptions */}
+            <DropdownMenuContent align="start" className="w-64">
               {item.subItems?.map((subItem) => (
                 <DropdownMenuItem key={subItem.title} asChild>
                   <Link 
@@ -180,11 +153,8 @@ export default function Header() {
                     onClick={() => isMobile && setIsMobileMenuOpen(false)}
                     className={cn("flex flex-col items-start p-2", pathname === subItem.href ? "bg-muted font-medium" : "")}
                   >
-                    <div className="flex items-center gap-2">
-                      {subItem.icon && <subItem.icon className="h-4 w-4 text-muted-foreground" />}
-                      <span className="font-medium">{subItem.title}</span>
-                    </div>
-                    {subItem.description && <p className="text-xs text-muted-foreground mt-0.5 ml-6">{subItem.description}</p>}
+                    <div className="font-medium">{subItem.title}</div>
+                    {subItem.description && <p className="text-xs text-muted-foreground mt-0.5">{subItem.description}</p>}
                   </Link>
                 </DropdownMenuItem>
               ))}
@@ -203,20 +173,18 @@ export default function Header() {
             <Link
               href={item.href}
               className={cn(
-                "text-base font-medium transition-colors py-3 px-3 rounded-md flex items-center gap-2", 
+                "text-base font-medium transition-colors py-3 px-3 rounded-md flex items-center", 
                 pathname === item.href
                   ? "bg-primary text-primary-foreground"
                   : "text-foreground/80 hover:text-foreground hover:bg-muted"
               )}
             >
-              {item.icon && <item.icon className="h-5 w-5" />}
               {item.title}
             </Link>
           </SheetClose>
         ) : (
           <div key={item.title + "-mobile-group"} className="py-1">
-            <h4 className="px-3 py-2 text-sm font-semibold text-muted-foreground flex items-center gap-2">
-              {item.icon && <item.icon className="h-5 w-5" />}
+            <h4 className="px-3 py-2 text-sm font-semibold text-muted-foreground">
               {item.title}
             </h4>
             {item.subItems?.map((subItem) => (
@@ -224,13 +192,12 @@ export default function Header() {
                 <Link
                   href={subItem.href}
                   className={cn(
-                    "text-base font-normal transition-colors py-2.5 pl-8 pr-3 rounded-md flex items-center gap-2",
+                    "text-base font-normal transition-colors py-2.5 pl-8 pr-3 rounded-md block",
                      pathname === subItem.href
                       ? "bg-primary/10 text-primary font-medium"
                       : "text-foreground/70 hover:text-foreground hover:bg-muted"
                   )}
                 >
-                   {subItem.icon && <subItem.icon className="h-4 w-4 text-muted-foreground" />}
                   {subItem.title}
                 </Link>
               </SheetClose>
@@ -254,24 +221,20 @@ export default function Header() {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0">
-                <SheetHeader className="border-b p-4">
+              <SheetContent side="left" className="w-[300px] sm:w-[350px] p-0 flex flex-col">
+                <SheetHeader className="border-b p-4 shrink-0">
                   <SheetTitle className="flex items-center gap-2">
                      <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Image
-              src="/logo.png"
-              width={500}
-              height={500}
-              alt="albatross realtor"
-            />
-                        {/* <Home className="h-7 w-7 text-primary" />
-                        <span className="text-xl font-headline font-semibold text-foreground">Albatross Realtor</span> */}
+                        <Home className="h-7 w-7 text-primary" />
+                        <span className="text-xl font-headline font-semibold text-foreground">Albatross Realtor</span>
                     </Link>
                   </SheetTitle>
                 </SheetHeader>
-                <div className="py-2">
-                  {renderMobileNavLinks()}
-                </div>
+                <ScrollArea className="flex-grow">
+                    <div className="py-2">
+                        {renderMobileNavLinks()}
+                    </div>
+                </ScrollArea>
                  <SheetClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary">
                     <XIcon className="h-4 w-4" />
                     <span className="sr-only">Close</span>
@@ -280,14 +243,8 @@ export default function Header() {
             </Sheet>
           </div>
           <Link href="/" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
-           <Image
-              src="/logo.png"
-              width={500}
-              height={500}
-              alt="albatross realtor"
-            />
-            {/* <Home className="h-8 w-8 text-primary hidden sm:block" />
-            <h1 className="text-2xl font-headline font-semibold">Albatross Realtor</h1> */}
+            <Home className="h-8 w-8 text-primary hidden sm:block" />
+            <h1 className="text-2xl font-headline font-semibold">Albatross Realtor</h1>
           </Link>
         </div>
 
@@ -365,26 +322,26 @@ export default function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 {user ? (
-                  user.role === 'admin' ? ( // Check role for admin
-                    <>
-                      <DropdownMenuLabel className="truncate">Admin: {user.name}</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
+                  <>
+                    <DropdownMenuLabel className="truncate">{user.name}</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild><Link href="/profile">My Profile</Link></DropdownMenuItem>
+                    
+                    {user.role === 'admin' ? (
+                       <DropdownMenuItem asChild>
                         <Link href="/admin/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" />Admin Dashboard</Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link href="/admin/settings">Admin Settings</Link>
-                      </DropdownMenuItem>
-                    </>
-                  ) : (
-                     <>
-                      <DropdownMenuLabel className="truncate">{user.name}</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild><Link href="/profile">My Profile</Link></DropdownMenuItem>
+                    ) : (
                       <DropdownMenuItem asChild><Link href="/saved">Saved Properties</Link></DropdownMenuItem>
-                      <DropdownMenuItem asChild><Link href="/properties/new">Add Property</Link></DropdownMenuItem>
-                    </>
-                  )
+                    )}
+                    
+                    {user.role === 'admin' && (
+                       <DropdownMenuItem asChild><Link href="/saved">Saved Properties</Link></DropdownMenuItem>
+                    )}
+
+                    <DropdownMenuItem asChild><Link href="/properties/new">Add Property</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/blog/new"><FilePlus className="mr-2 h-4 w-4" />Create Post</Link></DropdownMenuItem>
+                  </>
                 ) : (
                   <>
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -400,6 +357,7 @@ export default function Header() {
                   </DropdownMenuItem>
                 ) : (
                   <>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link href="/auth/login"><LogIn className="mr-2 h-4 w-4" />Log In</Link>
                     </DropdownMenuItem>

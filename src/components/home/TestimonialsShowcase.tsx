@@ -106,7 +106,7 @@ export default function TestimonialsShowcase() {
           Hear From Our Happy Clients
         </h2>
         <p className="text-lg text-muted-foreground text-center mb-8 max-w-2xl mx-auto">
-          See how buyers, sellers, and agents succeed with our verified listings and expert support.
+          See how buyers and sellers succeed with our verified listings and expert support.
         </p>
 
         <Carousel
@@ -134,7 +134,7 @@ export default function TestimonialsShowcase() {
         </Carousel>
         
         <div className="mt-10 text-center">
-          <p className="font-semibold text-accent">All Testimonials from Verified Users and Agents</p>
+          <p className="font-semibold text-accent">All Testimonials from Verified Users</p>
           <p className="text-sm text-muted-foreground italic mt-1">
             [Platform Metrics: 4.9/5 Average Rating from 5K+ Reviews - Placeholder]
           </p>
@@ -145,8 +145,8 @@ export default function TestimonialsShowcase() {
             <Link href="/testimonials">Read More Stories</Link>
           </Button>
           <div className="text-sm text-muted-foreground space-x-2 sm:space-x-4">
-            <Link href="/agents/find" className="hover:text-primary hover:underline inline-flex items-center gap-1">
-              <Users className="w-4 h-4" /> Find an Agent
+            <Link href="/contact" className="hover:text-primary hover:underline inline-flex items-center gap-1">
+              <Users className="w-4 h-4" /> Contact Us
             </Link>
             <span className="text-muted-foreground/50">|</span>
             <Link href="/share-story" className="hover:text-primary hover:underline inline-flex items-center gap-1">

@@ -7,8 +7,6 @@ import mongoose from 'mongoose';
 import { z } from 'zod';
 import type { PropertyTypeEnum, PropertyStatusEnum } from '@/types';
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@albatrossrealtor.com';
-
 const propertyTypes: [PropertyTypeEnum, ...PropertyTypeEnum[]] = ['House', 'Apartment', 'Condo', 'Townhouse', 'Land'];
 // For updates, admin might change status to more options, but frontend form limits initial user submission
 const allPropertyStatuses: [PropertyStatusEnum, ...PropertyStatusEnum[]] = ['For Sale', 'For Rent', 'Sold', 'Pending Approval', 'Draft'];
@@ -31,14 +29,13 @@ const PropertyUpdateSchema = z.object({
   }),
   images: z.array(z.string().url().min(1)).min(1, "At least one image URL is required.").optional(),
   features: z.array(z.string().min(1)).optional(),
-  agentId: z.string().optional().nullable(),
   // approvalStatus can be updated via a separate route
 });
 
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   const requestingUserId = request.headers.get('x-user-id');
-  const requestingUserEmail = request.headers.get('x-user-email');
+  const requestingUserRole = request.headers.get('x-user-role');
 
   const { id } = params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -58,7 +55,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     // 3. Public can see 'Approved' properties (this might be handled by a general /api/properties if this GET is only for edit/admin)
     // For now, assuming this GET is used for edit, so owner/admin check is primary.
     const isOwner = property.submittedBy && property.submittedBy.id.toString() === requestingUserId;
-    const isAdmin = requestingUserEmail === ADMIN_EMAIL;
+    const isAdmin = requestingUserRole === 'admin';
 
     if (!isOwner && !isAdmin) {
          // If property is not approved, and user is not owner or admin, deny access
@@ -79,7 +76,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   const requestingUserId = request.headers.get('x-user-id');
-  const requestingUserEmail = request.headers.get('x-user-email');
+  const requestingUserRole = request.headers.get('x-user-role');
 
   if (!requestingUserId) {
     return NextResponse.json({ success: false, error: 'Unauthorized: User ID not found.' }, { status: 401 });
@@ -98,7 +95,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     const isOwner = propertyToUpdate.submittedBy?.toString() === requestingUserId;
-    const isAdmin = requestingUserEmail === ADMIN_EMAIL;
+    const isAdmin = requestingUserRole === 'admin';
 
     if (!isOwner && !isAdmin) {
       return NextResponse.json({ success: false, error: 'Forbidden: You do not have permission to update this property.' }, { status: 403 });
@@ -113,35 +110,6 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     
     const updateData = validation.data;
     
-    // Handle agentId separately to allow setting it to null
-    if (updateData.hasOwnProperty('agentId')) {
-        if (updateData.agentId === null || updateData.agentId === '') {
-            // If agentId is explicitly set to null or empty string, remove it
-            updateData.agent = undefined; // Or handle in schema to unset
-             // Mongoose specific way to remove a subdocument or field
-            (updateData as any).$unset = { agent: 1 };
-            delete updateData.agentId; // remove from updateData to avoid processing as a field
-        } else if (updateData.agentId) {
-            // If agentId is provided, you might want to fetch agent details similarly to POST
-            // For simplicity here, assuming agentId is just a string and not embedding full agent object on update
-            // Or, if your mock-data has a getAgentById, you could use it.
-            // This part needs to align with how you handle agent info.
-            // Example: const agentDetails = mockAgents.find(a => a.id === updateData.agentId);
-            // if (agentDetails) propertyToUpdate.agent = agentDetails; else propertyToUpdate.agent = undefined;
-            // For now, we'll assume frontend doesn't send full agent object on update, only ID.
-            // This field would likely be handled differently if agents were DB entities.
-            // Let's assume for now that we only update if body includes full agent object (which schema doesn't ask for)
-            // Or we simply store agentId if that's what Property model stores for agent (it stores full object)
-            // This logic for agent update remains as in POST for simplicity, but might need refinement.
-             const { mockAgents } = await import('@/lib/mock-data'); // Dynamic import if needed
-             const foundAgent = mockAgents.find(a => a.id === updateData.agentId);
-             if (foundAgent) {
-                updateData.agent = foundAgent;
-             } else {
-                updateData.agent = undefined; // Or $unset as above
-             }
-        }
-    }
      // Ensure yearBuilt is correctly handled (null or number)
     if (updateData.hasOwnProperty('yearBuilt')) {
         updateData.yearBuilt = updateData.yearBuilt ? Number(updateData.yearBuilt) : null;
@@ -170,7 +138,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   const requestingUserId = request.headers.get('x-user-id');
-  const requestingUserEmail = request.headers.get('x-user-email');
+  const requestingUserRole = request.headers.get('x-user-role');
 
   if (!requestingUserId) {
     return NextResponse.json({ success: false, error: 'Unauthorized: User ID not found.' }, { status: 401 });
@@ -190,7 +158,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     const isOwner = propertyToDelete.submittedBy?.toString() === requestingUserId;
-    const isAdmin = requestingUserEmail === ADMIN_EMAIL;
+    const isAdmin = requestingUserRole === 'admin';
 
     if (!isOwner && !isAdmin) {
       return NextResponse.json({ success: false, error: 'Forbidden: You do not have permission to delete this property.' }, { status: 403 });

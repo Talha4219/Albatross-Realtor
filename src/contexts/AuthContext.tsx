@@ -11,6 +11,7 @@ interface User {
   name: string;
   email: string;
   role: UserRole; // Added role
+  profilePictureUrl?: string;
 }
 
 interface AuthContextType {
@@ -20,6 +21,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<User | null>;
   signup: (name: string, email: string, password: string) => Promise<User | null>;
   logout: () => void;
+  updateUser: (updatedUserData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -121,9 +123,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(null); 
     router.push('/auth/login');
   };
+  
+  const updateUser = (updatedUserData: Partial<User>) => {
+    if (user) {
+        const newUser = { ...user, ...updatedUserData };
+        setUser(newUser);
+        localStorage.setItem(LOCAL_STORAGE_KEY_USER, JSON.stringify(newUser));
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, signup, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

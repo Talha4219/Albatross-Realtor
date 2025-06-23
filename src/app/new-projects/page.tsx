@@ -1,5 +1,11 @@
 
 import NewProjectsListing from '@/components/projects/NewProjectsListing';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'New Projects | Albatross Realtor',
+  description: 'Discover the latest and most exciting new real estate developments and projects.',
+};
 
 export default function NewProjectsPage() {
   return (

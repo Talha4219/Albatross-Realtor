@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Users2 } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Our Team | Albatross Realtor',
+  description: 'Meet the dedicated professionals and expert agents behind Albatross Realtor.',
+};
 
 export default function TeamPage() {
   return (

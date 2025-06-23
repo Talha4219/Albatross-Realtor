@@ -11,21 +11,19 @@ import AdminHeader from '@/components/admin/AdminHeader';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Loader2 } from 'lucide-react';
 
-const ADMIN_EMAIL_REQUIRED = 'admin@albatrossrealtor.com';
-
 export default function AdminLayout({ children }: { children: ReactNode }) {
   const { user, isLoading: isAuthLoading } = useAuth(); // Use user object
   const router = useRouter();
 
   useEffect(() => {
     if (!isAuthLoading) {
-      if (!user || user.email !== ADMIN_EMAIL_REQUIRED) {
+      if (!user || user.role !== 'admin') {
         router.replace('/auth/login?redirect=/admin/dashboard'); // Redirect to login if not admin
       }
     }
   }, [user, isAuthLoading, router]);
 
-  if (isAuthLoading || !user || user.email !== ADMIN_EMAIL_REQUIRED) {
+  if (isAuthLoading || !user || user.role !== 'admin') {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-muted/40">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

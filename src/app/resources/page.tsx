@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Library } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Real Estate Resources Hub | Albatross Realtor',
+  description: 'Your one-stop destination for our blog, market trends, guides, and financial calculators.',
+};
 
 export default function ResourcesPage() {
   return (

@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Edit3 } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Post a Property Listing | Albatross Realtor',
+  description: 'List your property with Albatross Realtor and reach thousands of potential buyers and renters.',
+};
 
 export default function PostListingPage() {
   return (

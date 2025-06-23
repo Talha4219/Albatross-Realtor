@@ -4,26 +4,40 @@ import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import type { UserProfile } from '@/types';
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@albatrossrealtor.com';
+const ADMIN_ROLE = 'admin';
 
 export async function GET(request: NextRequest) {
-  const requestingUserEmail = request.headers.get('x-user-email');
+  const requestingUserRole = request.headers.get('x-user-role');
 
-  if (requestingUserEmail !== ADMIN_EMAIL) {
+  if (requestingUserRole !== ADMIN_ROLE) {
     return NextResponse.json({ success: false, error: 'Forbidden: Admin access required' }, { status: 403 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const searchQuery = searchParams.get('search');
+
   try {
     await dbConnect();
-    const usersFromDb = await User.find({}).sort({ createdAt: -1 });
+    
+    const query: any = {};
+    if (searchQuery) {
+      const regex = new RegExp(searchQuery, 'i'); // Case-insensitive regex
+      query.$or = [
+        { name: { $regex: regex } },
+        { email: { $regex: regex } },
+      ];
+    }
+
+    const usersFromDb = await User.find(query).sort({ createdAt: -1 });
 
     const users: UserProfile[] = usersFromDb.map(userDoc => {
       const userObject = userDoc.toObject();
-      // Ensure the object matches UserProfile structure, especially createdAt/updatedAt if needed
+      // Ensure the object matches UserProfile structure
       return {
         id: userObject.id,
         name: userObject.name,
         email: userObject.email,
+        role: userObject.role,
         createdAt: userObject.createdAt ? new Date(userObject.createdAt).toISOString() : undefined,
         updatedAt: userObject.updatedAt ? new Date(userObject.updatedAt).toISOString() : undefined,
       };

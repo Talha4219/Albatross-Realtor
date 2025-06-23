@@ -6,11 +6,19 @@ import type { Project as ProjectType } from '@/types';
 
 // This is a public endpoint to fetch projects for display on the homepage or other public pages.
 export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const status = searchParams.get('status');
+
   try {
     await dbConnect();
-    const projectsFromDb = await ProjectModel.find({})
-      .sort({ createdAt: -1 }) // Show newest first
-      .limit(10); // Optionally limit if the list grows very large, showcase can slice further
+
+    const query: any = {};
+    if (status) {
+      query.status = status;
+    }
+
+    const projectsFromDb = await ProjectModel.find(query)
+      .sort({ createdAt: -1 }); // Show newest first
 
     const projects: ProjectType[] = projectsFromDb.map(projDoc => projDoc.toObject() as ProjectType);
 

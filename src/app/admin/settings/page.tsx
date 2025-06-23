@@ -6,6 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Globe, Palette, Bell, Lock } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Admin Settings | Albatross Realtor',
+  description: 'Configure platform-wide settings and preferences for Albatross Realtor.',
+};
 
 export default function AdminSettingsPage() {
   return (

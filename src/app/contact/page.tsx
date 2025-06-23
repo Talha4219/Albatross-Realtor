@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, MailQuestion } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Contact Us | Albatross Realtor',
+  description: "Get in touch with Albatross Realtor. We're here to help you with your real estate needs.",
+};
 
 export default function ContactPage() {
   return (

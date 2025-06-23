@@ -75,7 +75,7 @@ export default function NewPropertyPage() {
           variant: "default",
         });
         // Redirect to admin properties if admin, otherwise to a 'my properties' page or homepage
-        if (user?.email === 'admin@albatrossrealtor.com') {
+        if (user?.role === 'admin') {
             router.push('/admin/properties');
         } else {
             router.push('/my-properties'); // Or '/' or a success page

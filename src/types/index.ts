@@ -1,28 +1,19 @@
-
 import type { Types } from 'mongoose';
-import type { UserRole } from '@/models/User'; // Import UserRole
-
-export interface Agent {
-  id: string;
-  name: string;
-  phone: string;
-  email: string;
-  imageUrl?: string;
-  isVerified?: boolean;
-  specialty?: string;
-  rating?: number;
-}
+import type { UserRole } from '@/models/User';
 
 export type PropertyTypeEnum = 'House' | 'Apartment' | 'Condo' | 'Townhouse' | 'Land';
 export type PropertyStatusEnum = 'For Sale' | 'For Rent' | 'Sold' | 'Pending Approval' | 'Draft';
 export type PropertyApprovalStatusEnum = 'Pending' | 'Approved' | 'Rejected';
+export const blogCategories = ['Buying Guide', 'Selling Guide', 'Market Trends', 'General Guide', 'News'] as const;
+export type BlogCategory = (typeof blogCategories)[number];
 
 // User interface for frontend and API responses (excluding sensitive data like passwordHash)
 export interface UserProfile {
   id: string;
   name: string;
   email: string;
-  role: UserRole; // Added role
+  role: UserRole;
+  profilePictureUrl?: string;
   createdAt?: string; // ISO date string
   updatedAt?: string; // ISO date string
 }
@@ -42,7 +33,6 @@ export interface Property {
   propertyType: PropertyTypeEnum;
   yearBuilt?: number;
   features?: string[];
-  agent?: Agent;
   latitude?: number;
   longitude?: number;
   status: PropertyStatusEnum;
@@ -86,11 +76,17 @@ export interface Testimonial {
 export interface BlogPost {
   id: string;
   title: string;
+  slug: string;
   excerpt: string;
+  content: string; // Add full content for the blog post page
   imageUrl: string;
   dataAiHint?: string;
-  category: string;
-  slug: string;
+  category: BlogCategory;
   author?: string;
-  date?: string; // ISO date string
+  tags?: string[];
+  status: 'published' | 'draft';
+  approvalStatus?: PropertyApprovalStatusEnum;
+  submittedBy?: UserProfile;
+  createdAt?: string; // ISO date string
+  updatedAt?: string; // ISO date string
 }

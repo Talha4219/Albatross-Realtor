@@ -5,7 +5,7 @@ import ProjectModel from '@/models/Project'; // Use the new Project model
 import { z } from 'zod';
 import type { Project as ProjectType } from '@/types';
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@albatrossrealtor.com';
+const ADMIN_ROLE = 'admin';
 
 // Zod schema for creating a new project/development
 const CreateProjectSchema = z.object({
@@ -25,14 +25,23 @@ const CreateProjectSchema = z.object({
 
 
 export async function GET(request: NextRequest) {
-  const requestingUserEmail = request.headers.get('x-user-email');
-  if (requestingUserEmail !== ADMIN_EMAIL) {
+  const requestingUserRole = request.headers.get('x-user-role');
+  if (requestingUserRole !== ADMIN_ROLE) {
     return NextResponse.json({ success: false, error: 'Forbidden: Admin access required' }, { status: 403 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const status = searchParams.get('status');
+
   try {
     await dbConnect();
-    const projectsFromDb = await ProjectModel.find({}).sort({ createdAt: -1 });
+
+    const query: any = {};
+    if (status) {
+      query.status = status;
+    }
+
+    const projectsFromDb = await ProjectModel.find(query).sort({ createdAt: -1 });
 
     const projects: ProjectType[] = projectsFromDb.map(projDoc => projDoc.toObject() as ProjectType);
 
@@ -46,8 +55,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const requestingUserEmail = request.headers.get('x-user-email');
-  if (requestingUserEmail !== ADMIN_EMAIL) {
+  const requestingUserRole = request.headers.get('x-user-role');
+  if (requestingUserRole !== ADMIN_ROLE) {
     return NextResponse.json({ success: false, error: 'Forbidden: Admin access required' }, { status: 403 });
   }
 

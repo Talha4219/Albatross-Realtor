@@ -2,10 +2,11 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { UserCircle, ShieldCheck, Loader2, AlertTriangle, Users as UsersIcon, Edit3, Eye } from 'lucide-react';
+import { UserCircle, ShieldCheck, Loader2, AlertTriangle, Users as UsersIcon, Edit3, Eye, RotateCcw } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { UserProfile, UserRole } from '@/types'; 
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,6 +28,9 @@ export default function AdminUsersPage() {
   const [error, setError] = useState<string | null>(null);
   const { token, user: adminUser, isLoading: isAuthLoading } = useAuth();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const searchQuery = searchParams.get('search');
 
   const fetchUsers = async () => {
     if (!token) {
@@ -37,7 +41,8 @@ export default function AdminUsersPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/admin/users', {
+      const url = searchQuery ? `/api/admin/users?search=${encodeURIComponent(searchQuery)}` : '/api/admin/users';
+      const res = await fetch(url, {
         headers: { 'Authorization': `Bearer ${token}` },
       });
       if (!res.ok) {
@@ -46,10 +51,9 @@ export default function AdminUsersPage() {
       }
       const data = await res.json();
       if (data.success) {
-        // Ensure role is part of the UserProfile type fetched
         const fetchedUsers = data.data.map((u: any) => ({
             ...u,
-            role: u.role || 'user' // Default if role isn't present, though API should send it
+            role: u.role || 'user'
         }));
         setUsers(fetchedUsers);
       } else {
@@ -73,7 +77,7 @@ export default function AdminUsersPage() {
       setIsLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, isAuthLoading]);
+  }, [token, isAuthLoading, searchQuery]);
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
     if (!token) {
@@ -82,7 +86,6 @@ export default function AdminUsersPage() {
     }
     
     const originalUsers = [...users];
-    // Optimistic UI update
     setUsers(prevUsers => prevUsers.map(u => u.id === userId ? { ...u, role: newRole } : u));
 
     try {
@@ -97,24 +100,19 @@ export default function AdminUsersPage() {
       const result = await response.json();
       if (response.ok && result.success) {
         toast({ title: "Role Updated", description: `User role updated to ${newRole}.`, variant: "default" });
-        // Confirm update with server data (though likely same as optimistic)
         setUsers(prevUsers => prevUsers.map(u => u.id === userId ? { ...u, role: result.data.role } : u));
       } else {
-        // Revert optimistic update on failure
         setUsers(originalUsers);
         throw new Error(result.error || `Failed to update role to ${newRole}`);
       }
     } catch (err) {
-      // Revert optimistic update on error
       setUsers(originalUsers);
       console.error(`Error updating user ${userId} role to ${newRole}:`, err);
       toast({ title: "Update Failed", description: (err instanceof Error ? err.message : "An unknown error occurred"), variant: "destructive" });
     }
   };
 
-
   const getUserStatus = (/* user: UserProfile */) => {
-    // Placeholder logic, can be expanded if user status field is added to User model
     return 'Active'; 
   };
 
@@ -132,8 +130,18 @@ export default function AdminUsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Manage Users</h1>
-          <p className="text-muted-foreground">Administer user accounts, roles, and permissions.</p>
+          <p className="text-muted-foreground">
+            {searchQuery 
+              ? `Showing search results for "${searchQuery}"`
+              : "Administer user accounts, roles, and permissions."
+            }
+          </p>
         </div>
+        {searchQuery && (
+          <Button variant="outline" onClick={() => router.push('/admin/users')}>
+            <RotateCcw className="mr-2 h-4 w-4" /> Clear Search
+          </Button>
+        )}
       </div>
 
       {error && (
@@ -159,8 +167,12 @@ export default function AdminUsersPage() {
           ) : !error && users.length === 0 && !isLoading ? (
             <div className="text-center py-12">
               <UsersIcon className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-sm font-medium text-foreground">No users found</h3>
-              <p className="mt-1 text-sm text-muted-foreground">User registrations will appear here.</p>
+              <h3 className="mt-2 text-sm font-medium text-foreground">
+                {searchQuery ? "No users found" : "No users registered"}
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {searchQuery ? "Try a different search term." : "User registrations will appear here."}
+              </p>
             </div>
           ) : !error && users.length > 0 ? (
             <div className="overflow-x-auto">
@@ -200,7 +212,7 @@ export default function AdminUsersPage() {
                               <SelectValue placeholder="Set role" />
                             </SelectTrigger>
                             <SelectContent>
-                              {(['user', 'agent', 'admin'] as UserRole[]).map(roleOption => (
+                              {(['user', 'admin'] as UserRole[]).map(roleOption => (
                                 <SelectItem key={roleOption} value={roleOption} className="text-xs capitalize">
                                   {roleOption.charAt(0).toUpperCase() + roleOption.slice(1)}
                                 </SelectItem>
@@ -223,7 +235,6 @@ export default function AdminUsersPage() {
                             <Eye className="mr-1 h-3.5 w-3.5" /> View Properties
                           </Link>
                         </Button>
-                        {/* More actions like 'Suspend' can be added here */}
                       </td>
                     </tr>
                   ))}
@@ -239,6 +250,3 @@ export default function AdminUsersPage() {
     </div>
   );
 }
-
-
-      

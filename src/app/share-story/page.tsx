@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Send } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Share Your Story | Albatross Realtor',
+  description: 'Share your successful real estate journey with Albatross Realtor. We would love to hear from you.',
+};
 
 export default function ShareStoryPage() {
   return (

@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Gavel } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Legal Guides & Tips | Albatross Realtor',
+  description: 'Understand the legal aspects of real estate transactions with our helpful guides.',
+};
 
 export default function LegalGuidesPage() {
   return (

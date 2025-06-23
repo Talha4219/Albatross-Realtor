@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Cookie } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Cookie Policy | Albatross Realtor',
+  description: 'Learn how Albatross Realtor uses cookies to enhance your website experience.',
+};
 
 export default function CookiePolicyPage() {
   return (

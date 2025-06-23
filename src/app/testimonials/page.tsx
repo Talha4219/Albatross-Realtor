@@ -3,6 +3,12 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Star } from 'lucide-react';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Client Testimonials | Albatross Realtor',
+  description: 'See what our satisfied clients have to say about their experience with Albatross Realtor.',
+};
 
 export default function TestimonialsPage() {
   return (

@@ -30,7 +30,6 @@ export default function Footer() {
     services: [
       { title: 'Search Properties', href: '/#property-search-section' },
       { title: 'New Projects', href: '/new-projects' },
-      { title: 'Find an Agent', href: '/agents/find' },
       { title: 'Loan Calculator', href: '/financing/calculator' },
     ],
     resources: [
@@ -42,7 +41,6 @@ export default function Footer() {
     ],
     forProfessionals: [
       { title: 'Post a Listing', href: '/post-listing' },
-      { title: 'Agent Tools', href: '/agents/tools' },
       { title: 'Advertising Options', href: '/advertise' },
     ],
   };
@@ -84,7 +82,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold text-foreground mb-3">For Professionals</h3>
+            <h3 className="font-semibold text-foreground mb-3">List With Us</h3>
             <ul className="space-y-2">
               {footerNavLinks.forProfessionals.map(link => (
                 <li key={link.title}><Link href={link.href} className="hover:text-primary transition-colors text-sm">{link.title}</Link></li>

@@ -125,45 +125,6 @@ export default function PropertyDetailPage() {
                <InfoItem icon={<Tag className="text-primary" />} label="Posted" value={timeAgo} />
             </CardContent>
           </Card>
-
-          {property.agent && (
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="font-headline">Contact Agent</CardTitle>
-                  {property.agent.isVerified && (
-                     <Badge variant="success" className="text-xs flex items-center">
-                      <CheckCircle className="w-3 h-3 mr-1" /> Verified Agent
-                    </Badge>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent className="flex items-center space-x-4">
-                <Avatar className="w-20 h-20">
-                  <AvatarImage src={property.agent.imageUrl} alt={property.agent.name} data-ai-hint="person portrait" />
-                  <AvatarFallback className="text-2xl bg-muted">
-                    {property.agent.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <Link href={`/agent/${property.agent.id}`} className="hover:underline">
-                    <p className="font-semibold text-lg text-primary">{property.agent.name}</p>
-                  </Link>
-                  <a href={`tel:${property.agent.phone}`} className="flex items-center text-foreground hover:underline mt-1 text-sm">
-                    <Phone className="w-4 h-4 mr-2" /> {property.agent.phone}
-                  </a>
-                  <a href={`mailto:${property.agent.email}`} className="flex items-center text-foreground hover:underline mt-1 text-sm">
-                    <Mail className="w-4 h-4 mr-2" /> {property.agent.email}
-                  </a>
-                </div>
-              </CardContent>
-              <CardContent>
-                 <Button className="w-full mt-2 font-headline" onClick={() => window.location.href = `mailto:${property.agent?.email}?subject=Inquiry about ${property.address}` }>
-                    Email Agent
-                  </Button>
-              </CardContent>
-            </Card>
-          )}
            <Button variant="outline" onClick={handleReportListing} className="w-full font-headline">
             <AlertTriangle className="w-4 h-4 mr-2 text-destructive" /> Report This Listing
           </Button>
@@ -209,8 +170,6 @@ export default function PropertyDetailPage() {
             <CardContent>
                <MapPlaceholder 
                 height="300px" 
-                city={property.city}
-                state={property.state}
               />
             </CardContent>
           </Card>
@@ -334,4 +293,3 @@ const SkeletonPropertyPage = () => (
     </div>
   </div>
 );
-

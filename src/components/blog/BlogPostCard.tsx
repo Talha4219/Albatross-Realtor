@@ -37,10 +37,10 @@ export default function BlogPostCard({ post }: BlogPostCardProps) {
             {post.excerpt}
           </CardDescription>
           <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-            {post.date && (
+            {post.createdAt && (
               <span className="flex items-center gap-1">
                 <CalendarDays className="w-3.5 h-3.5" />
-                {format(parseISO(post.date), 'MMM d, yyyy')}
+                {format(parseISO(post.createdAt), 'MMM d, yyyy')}
               </span>
             )}
             {post.author && (
