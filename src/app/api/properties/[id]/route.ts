@@ -7,7 +7,7 @@ import mongoose from 'mongoose';
 import { z } from 'zod';
 import type { PropertyTypeEnum, PropertyStatusEnum } from '@/types';
 
-const propertyTypes: [PropertyTypeEnum, ...PropertyTypeEnum[]] = ['House', 'Apartment', 'Condo', 'Townhouse', 'Land'];
+const propertyTypes: [PropertyTypeEnum, ...PropertyTypeEnum[]] = ['House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot'];
 // For updates, admin might change status to more options, but frontend form limits initial user submission
 const allPropertyStatuses: [PropertyStatusEnum, ...PropertyStatusEnum[]] = ['For Sale', 'For Rent', 'Sold', 'Pending Approval', 'Draft'];
 

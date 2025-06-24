@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, LayoutGrid, Users, Building, Settings, ShieldAlert, UserCircle, LogOut, Sparkles, BookText, PlusCircle, TrendingUp, CalendarClock, MessageSquareQuote } from 'lucide-react';
+import { Home, LayoutGrid, Users, Building, Settings, ShieldAlert, UserCircle, LogOut, Sparkles, BookText, PlusCircle, TrendingUp, CalendarClock, MessageSquareQuote, LandPlot } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroupLabel } from '@/components/ui/sidebar'; 
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,14 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const adminNavItems = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutGrid, type: 'item' },
-  { href: '/admin/properties', label: 'Manage Properties', icon: Building, type: 'item' },
+  { type: 'separator' },
+  { type: 'heading', label: 'Properties' },
+  { href: '/admin/properties', label: 'All Properties', icon: Building, isSubItem: true, type: 'item' },
+  { href: '/properties/new', label: 'Add Property', icon: PlusCircle, isSubItem: true, type: 'item' },
+  { type: 'separator' },
+  { type: 'heading', label: 'Plots' },
+  { href: '/admin/properties?type=Plot', label: 'All Plots', icon: LandPlot, isSubItem: true, type: 'item' },
+  { href: '/properties/new?type=Plot', label: 'Add Plot', icon: PlusCircle, isSubItem: true, type: 'item' },
   { type: 'separator' },
   { type: 'heading', label: 'Projects' },
   { href: '/admin/developments', label: 'All Projects', icon: Sparkles, isSubItem: true, type: 'item' },

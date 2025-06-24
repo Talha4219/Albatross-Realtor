@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -14,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { PropertyTypeEnum as PropertyTypeType, PropertyStatusEnum } from '@/types'; // Renamed to avoid conflict
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 
-const propertyTypes: PropertyTypeType[] = ['House', 'Apartment', 'Condo', 'Townhouse', 'Land'];
+const propertyTypes: PropertyTypeType[] = ['House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot'];
 // These are statuses a user can set when creating/editing. Admin might have more options for 'status' via other interfaces.
 const userSettablePropertyStatuses: PropertyStatusEnum[] = ['For Sale', 'For Rent', 'Draft']; 
 
@@ -36,7 +37,16 @@ const PropertyFormSchema = z.object({
   }),
   images: z.array(z.string().url("Must be a valid URL.").min(1, "Image URL cannot be empty.")).min(1, "At least one image URL is required."),
   features: z.array(z.string().min(1, "Feature cannot be empty.")).optional(),
+}).refine(data => {
+    if (data.propertyType === 'Plot' || data.propertyType === 'Land') {
+        return data.bedrooms === 0 && data.bathrooms === 0;
+    }
+    return true;
+}, {
+    message: "Bedrooms and bathrooms must be 0 for a Plot or Land.",
+    path: ["bedrooms"],
 });
+
 
 export type PropertyFormData = z.infer<typeof PropertyFormSchema>;
 
@@ -48,6 +58,9 @@ interface PropertyFormProps {
 }
 
 export default function PropertyForm({ onSubmit, initialData, isLoading, formType = 'create' }: PropertyFormProps) {
+  const searchParams = useSearchParams();
+  const defaultPropertyType = searchParams.get('type') as PropertyTypeType | null;
+
   const form = useForm<PropertyFormData>({
     resolver: zodResolver(PropertyFormSchema),
     defaultValues: {
@@ -60,7 +73,7 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
       bathrooms: 0,
       areaSqFt: 0,
       description: '',
-      propertyType: 'House',
+      propertyType: defaultPropertyType || 'House',
       status: 'For Sale', // Default to 'For Sale' for new submissions
       yearBuilt: null,
       images: [''],
@@ -82,7 +95,7 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
       
       form.reset({
         address: '', city: '', state: '', zip: '', price: 0, bedrooms: 0, bathrooms: 0, areaSqFt: 0,
-        description: '', propertyType: 'House', status: 'For Sale', yearBuilt: null,
+        description: '', propertyType: defaultPropertyType || 'House', status: 'For Sale', yearBuilt: null,
         images: [''], features: [''],
         ...filteredInitialData // Spread the potentially modified initialData
       });
@@ -91,11 +104,20 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
       setFeatureFields(initialData.features && initialData.features.length > 0 ? initialData.features : ['']);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData, form.reset]);
+  }, [initialData, form.reset, defaultPropertyType]);
 
 
   const [imageFields, setImageFields] = useState<string[]>(initialData?.images && initialData.images.length > 0 ? initialData.images : ['']);
   const [featureFields, setFeatureFields] = useState<string[]>(initialData?.features && initialData.features.length > 0 ? initialData.features : ['']);
+  const currentPropertyType = form.watch('propertyType');
+
+  useEffect(() => {
+    if (currentPropertyType === 'Plot' || currentPropertyType === 'Land') {
+      form.setValue('bedrooms', 0);
+      form.setValue('bathrooms', 0);
+    }
+  }, [currentPropertyType, form]);
+
 
   const addImageField = () => {
     const newImages = [...imageFields, ''];
@@ -144,6 +166,7 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
 
   const submitButtonText = formType === 'edit' ? 'Update Property' : 'Submit Property for Approval';
 
+  const isPlotOrLand = currentPropertyType === 'Plot' || currentPropertyType === 'Land';
 
   return (
     <Form {...form}>
@@ -198,30 +221,8 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
             name="price"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Price ($)</FormLabel>
+                <FormLabel>Price (Rs)</FormLabel>
                 <FormControl><Input type="number" placeholder="e.g., 750000" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="bedrooms"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Bedrooms</FormLabel>
-                <FormControl><Input type="number" placeholder="e.g., 3" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="bathrooms"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Bathrooms</FormLabel>
-                <FormControl><Input type="number" step="0.5" placeholder="e.g., 2.5" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -237,25 +238,52 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
               </FormItem>
             )}
           />
-           <FormField
-            control={form.control}
-            name="yearBuilt"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Year Built (Optional)</FormLabel>
-                <FormControl>
-                  <Input 
-                    type="number" 
-                    placeholder="e.g., 1985" 
-                    {...field} 
-                    value={field.value === null || field.value === undefined ? '' : String(field.value)}
-                    onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {!isPlotOrLand && (
+              <>
+                <FormField
+                    control={form.control}
+                    name="bedrooms"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Bedrooms</FormLabel>
+                        <FormControl><Input type="number" placeholder="e.g., 3" {...field} disabled={isPlotOrLand} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="bathrooms"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Bathrooms</FormLabel>
+                        <FormControl><Input type="number" step="0.5" placeholder="e.g., 2.5" {...field} disabled={isPlotOrLand} /></FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="yearBuilt"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Year Built (Optional)</FormLabel>
+                        <FormControl>
+                        <Input 
+                            type="number" 
+                            placeholder="e.g., 1985" 
+                            {...field} 
+                            value={field.value === null || field.value === undefined ? '' : String(field.value)}
+                            onChange={e => field.onChange(e.target.value === '' ? null : Number(e.target.value))}
+                            disabled={isPlotOrLand}
+                        />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+              </>
+          )}
         </div>
 
         <FormField
@@ -277,7 +305,7 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
             render={({ field }) => (
                 <FormItem>
                 <FormLabel>Property Type</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} defaultValue={initialData?.propertyType || 'House'}>
+                <Select onValueChange={field.onChange} value={field.value} defaultValue={initialData?.propertyType || defaultPropertyType || 'House'}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Select property type" /></SelectTrigger></FormControl>
                     <SelectContent>
                     {propertyTypes.map(type => (
@@ -349,7 +377,7 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
                 <div key={index} className="flex items-center gap-2">
                   <FormControl>
                     <Input
-                      placeholder={`Feature ${index + 1} (e.g., Granite Countertops)`}
+                      placeholder={`Feature ${index + 1} (e.g., Gated Community)`}
                       value={feature || ''} // Ensure value is not null for input
                       onChange={(e) => handleFeatureChange(index, e.target.value)}
                     />

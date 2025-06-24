@@ -1,7 +1,8 @@
+
 import type { Types } from 'mongoose';
 
 export type UserRole = 'user' | 'agent' | 'admin';
-export type PropertyTypeEnum = 'House' | 'Apartment' | 'Condo' | 'Townhouse' | 'Land';
+export type PropertyTypeEnum = 'House' | 'Apartment' | 'Condo' | 'Townhouse' | 'Land' | 'Plot';
 export type PropertyStatusEnum = 'For Sale' | 'For Rent' | 'Sold' | 'Pending Approval' | 'Draft';
 export type PropertyApprovalStatusEnum = 'Pending' | 'Approved' | 'Rejected';
 export const blogCategories = ['Buying Guide', 'Selling Guide', 'Market Trends', 'General Guide', 'News'] as const;

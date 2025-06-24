@@ -5,14 +5,14 @@ import React, { useState, useEffect } from 'react';
 import PropertyCard from '@/components/property/PropertyCard';
 import type { Property } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Building, Frown, Loader2, AlertTriangle } from 'lucide-react';
+import { LandPlot, Frown, Loader2, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 const ITEMS_PER_PAGE = 9;
 
-export default function ForSalePropertiesPage() {
+export default function PlotsPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -24,23 +24,23 @@ export default function ForSalePropertiesPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch('/api/properties?status=For Sale');
+        const res = await fetch('/api/properties?propertyType=Plot');
         if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ error: `Failed to fetch properties: ${res.statusText}` }));
+          const errorData = await res.json().catch(() => ({ error: `Failed to fetch plots: ${res.statusText}` }));
           throw new Error(errorData.error || `Network response was not ok: ${res.status}`);
         }
         const data = await res.json();
         if (data.success) {
           setProperties(data.data);
         } else {
-          throw new Error(data.error || "Failed to fetch 'For Sale' properties: API success false");
+          throw new Error(data.error || "Failed to fetch plots: API success false");
         }
       } catch (err) {
-        console.error("Error fetching 'For Sale' properties:", err);
-        const specificError = err instanceof Error ? err.message : "Could not load property data.";
+        console.error("Error fetching plots:", err);
+        const specificError = err instanceof Error ? err.message : "Could not load plot data.";
         setError(specificError);
         toast({
-          title: "Error Fetching Properties",
+          title: "Error Fetching Plots",
           description: specificError,
           variant: "destructive",
         });
@@ -63,7 +63,6 @@ export default function ForSalePropertiesPage() {
     for (let i = 1; i <= totalPages; i++) {
       pageNumbers.push(i);
     }
-    // Basic pagination, can be enhanced like homepage
     return (
       <div className="flex justify-center items-center space-x-2 mt-10 pt-6 border-t">
         <Button 
@@ -110,10 +109,10 @@ export default function ForSalePropertiesPage() {
     <div className="space-y-8">
       <Card className="shadow-lg border-primary/20 bg-gradient-to-br from-primary/5 via-background to-background">
         <CardHeader className="text-center">
-            <Building className="mx-auto h-12 w-12 text-primary mb-3" />
-            <CardTitle className="text-4xl font-headline text-primary">Properties For Sale</CardTitle>
+            <LandPlot className="mx-auto h-12 w-12 text-primary mb-3" />
+            <CardTitle className="text-4xl font-headline text-primary">Land & Plots for Sale</CardTitle>
             <CardDescription className="text-lg text-muted-foreground max-w-xl mx-auto">
-                Explore our curated selection of homes, apartments, and commercial properties available for purchase. Find your next investment or dream home here.
+                Explore residential, commercial, and agricultural plots. Your opportunity to build from the ground up starts here.
             </CardDescription>
         </CardHeader>
       </Card>
@@ -126,7 +125,7 @@ export default function ForSalePropertiesPage() {
          <Card className="border-destructive bg-destructive/10">
             <CardHeader className="items-center text-center">
                 <AlertTriangle className="mx-auto h-10 w-10 text-destructive mb-2" />
-                <CardTitle className="font-headline text-destructive">Error Loading Properties</CardTitle>
+                <CardTitle className="font-headline text-destructive">Error Loading Plots</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
                 <p className="text-destructive-foreground">{error}</p>
@@ -147,9 +146,9 @@ export default function ForSalePropertiesPage() {
       ) : (
         <div className="text-center py-16 border border-dashed rounded-lg bg-card">
             <Frown className="w-20 h-20 mx-auto text-muted-foreground mb-6" />
-            <h2 className="text-2xl font-semibold text-foreground mb-2">No Properties For Sale Currently</h2>
+            <h2 className="text-2xl font-semibold text-foreground mb-2">No Plots Found</h2>
             <p className="text-muted-foreground">
-                Please check back later or broaden your search.
+                There are currently no plots listed for sale. Please check back later.
             </p>
         </div>
       )}

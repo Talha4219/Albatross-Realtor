@@ -58,6 +58,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     else if (typeLower === 'condo') cardHint = "condo building";
     else if (typeLower === 'townhouse') cardHint = "townhouse exterior";
     else if (typeLower === 'land') cardHint = "land plot";
+    else if (typeLower === 'plot') cardHint = "land plot";
   }
 
   return (
@@ -91,7 +92,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         <CardContent className="p-4 flex-grow">
           <div className="flex justify-between items-start">
             <p className="text-2xl font-headline font-semibold text-primary mb-1">
-              ${property.price.toLocaleString()}
+              Rs {property.price.toLocaleString()}
             </p>
             {property.isVerified && (
               <Badge variant="success" className="text-xs ml-2 flex items-center shrink-0">

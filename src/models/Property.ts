@@ -23,7 +23,7 @@ const PropertySchema = new Schema<IProperty>({
   areaSqFt: { type: Number, required: true },
   description: { type: String, required: true },
   images: [{ type: String }],
-  propertyType: { type: String, enum: ['House', 'Apartment', 'Condo', 'Townhouse', 'Land'], required: true },
+  propertyType: { type: String, enum: ['House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot'], required: true },
   yearBuilt: Number,
   features: [{ type: String }],
   latitude: Number,

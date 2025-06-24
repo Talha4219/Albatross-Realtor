@@ -10,20 +10,20 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SearchIcon, HomeIcon, BedIcon, BathIcon, DollarSignIcon, ScanSearch } from 'lucide-react';
-import type { PropertyType } from '@/types';
+import type { PropertyTypeEnum } from '@/types';
 
 interface SearchFiltersProps {
   onSearch: (filters: any) => void; // Define a proper filter type later
 }
 
-const propertyTypes: PropertyType[] = ['House', 'Apartment', 'Condo', 'Townhouse', 'Land'];
+const propertyTypes: PropertyTypeEnum[] = ['House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot'];
 const bedOptions = [1, 2, 3, 4, 5];
 const bathOptions = [1, 1.5, 2, 2.5, 3, 4];
 
 export default function SearchFilters({ onSearch }: SearchFiltersProps) {
   const [location, setLocation] = useState('');
   const [priceRange, setPriceRange] = useState<[number, number]>([50000, 5000000]);
-  const [propertyType, setPropertyType] = useState<PropertyType | ''>('');
+  const [propertyType, setPropertyType] = useState<PropertyTypeEnum | ''>('');
   const [beds, setBeds] = useState<number | ''>('');
   const [baths, setBaths] = useState<number | ''>('');
   const [minArea, setMinArea] = useState<string>('');
@@ -73,8 +73,8 @@ export default function SearchFilters({ onSearch }: SearchFiltersProps) {
           <div className="lg:col-span-4">
             <Label className="font-medium mb-2 block">Price Range</Label>
             <div className="flex justify-between text-sm text-muted-foreground mb-2">
-              <span>${priceRange[0].toLocaleString()}</span>
-              <span>${priceRange[1].toLocaleString()}</span>
+              <span>Rs {priceRange[0].toLocaleString()}</span>
+              <span>Rs {priceRange[1].toLocaleString()}</span>
             </div>
             <Slider
               min={0}
@@ -88,7 +88,7 @@ export default function SearchFilters({ onSearch }: SearchFiltersProps) {
           
           <div>
             <Label htmlFor="propertyType" className="font-medium mb-1 block">Property Type</Label>
-            <Select value={propertyType} onValueChange={(value) => setPropertyType(value as PropertyType)}>
+            <Select value={propertyType} onValueChange={(value) => setPropertyType(value as PropertyTypeEnum)}>
               <SelectTrigger id="propertyType" className="w-full">
                 <SelectValue placeholder="Any Type" />
               </SelectTrigger>

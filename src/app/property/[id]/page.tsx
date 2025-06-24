@@ -131,7 +131,7 @@ export default function PropertyDetailPage() {
               <p className="text-lg text-muted-foreground flex items-center mt-1">
                 <MapPin className="w-5 h-5 mr-2 shrink-0" /> {property.city}, {property.state} {property.zip}
               </p>
-              <p className="text-4xl font-headline font-bold text-accent mt-2">${property.price.toLocaleString()}</p>
+              <p className="text-4xl font-headline font-bold text-accent mt-2">Rs {property.price.toLocaleString()}</p>
             </CardHeader>
             <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-lg">
               <InfoItem icon={<BedDouble className="text-primary" />} label="Beds" value={String(property.bedrooms)} />

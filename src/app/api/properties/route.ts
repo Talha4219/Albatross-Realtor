@@ -7,7 +7,7 @@ import { z } from 'zod';
 import type { PropertyTypeEnum, PropertyStatusEnum } from '@/types';
 import mongoose from 'mongoose';
 
-const propertyTypes: [PropertyTypeEnum, ...PropertyTypeEnum[]] = ['House', 'Apartment', 'Condo', 'Townhouse', 'Land'];
+const propertyTypes: [PropertyTypeEnum, ...PropertyTypeEnum[]] = ['House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot'];
 const propertyStatuses: [PropertyStatusEnum, ...PropertyStatusEnum[]] = ['For Sale', 'For Rent', 'Sold', 'Pending Approval', 'Draft'];
 
 
@@ -26,13 +26,23 @@ const PropertyAPISchema = z.object({
   yearBuilt: z.coerce.number().optional().nullable(),
   images: z.array(z.string().url()).min(1),
   features: z.array(z.string()).optional(),
+}).refine(data => {
+    if (data.propertyType === 'Plot' || data.propertyType === 'Land') {
+        return data.bedrooms === 0 && data.bathrooms === 0;
+    }
+    return true;
+}, {
+    message: "Bedrooms and bathrooms must be 0 for a Plot or Land.",
+    path: ["bedrooms"],
 });
+
 
 export async function GET(request: NextRequest) {
   const userRole = request.headers.get('x-user-role'); 
   const { searchParams } = new URL(request.url);
   const submittedById = searchParams.get('submittedById');
   const statusFilter = searchParams.get('status') as PropertyStatusEnum | null;
+  const propertyTypeFilter = searchParams.get('propertyType') as PropertyTypeEnum | null;
   const searchQuery = searchParams.get('search');
 
   try {
@@ -47,12 +57,18 @@ export async function GET(request: NextRequest) {
       if (statusFilter && propertyStatuses.includes(statusFilter)) {
         query.status = statusFilter;
       }
+      if (propertyTypeFilter && propertyTypes.includes(propertyTypeFilter)) {
+        query.propertyType = propertyTypeFilter;
+      }
     } else {
       query.approvalStatus = 'Approved';
       if (statusFilter && (statusFilter === 'For Sale' || statusFilter === 'For Rent')) {
         query.status = statusFilter;
       } else if (statusFilter) {
         return NextResponse.json({ success: true, data: [] }, { status: 200 });
+      }
+       if (propertyTypeFilter && propertyTypes.includes(propertyTypeFilter)) {
+        query.propertyType = propertyTypeFilter;
       }
     }
     

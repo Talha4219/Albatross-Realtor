@@ -13,14 +13,14 @@ export const metadata: Metadata = {
 const advertisingOptions = [
   {
     title: 'Featured Property',
-    price: '$99 / month',
+    price: 'Rs 99 / month',
     description: 'Get your property featured on our homepage and at the top of search results to maximize visibility.',
     features: ['Homepage placement', 'Top search ranking', 'Increased impressions', 'Analytics report'],
     icon: Star,
   },
   {
     title: 'Developer Spotlight',
-    price: '$299 / month',
+    price: 'Rs 299 / month',
     description: 'Showcase your new development project to thousands of potential investors and homebuyers.',
     features: ['Dedicated project page', 'Homepage banner', 'Email newsletter feature', 'Social media promotion'],
     icon: TrendingUp,

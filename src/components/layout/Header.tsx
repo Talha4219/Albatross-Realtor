@@ -18,6 +18,7 @@ import {
   LayoutDashboard,
   UserPlus,
   FilePlus,
+  LandPlot,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,8 +59,9 @@ const navItems: NavItem[] = [
   {
     title: 'Properties',
     subItems: [
-      { title: 'For Sale', href: '/properties/for-sale', description: 'Homes, plots, commercial' },
+      { title: 'For Sale', href: '/properties/for-sale', description: 'Homes, apartments, commercial' },
       { title: 'For Rent', href: '/properties/for-rent', description: 'Houses, apartments, shops' },
+      { title: 'Plots', href: '/properties/plots', description: 'Residential & commercial land' },
       { title: 'Map Search', href: '/properties/map-search', description: 'Visualize on map' },
     ],
   },

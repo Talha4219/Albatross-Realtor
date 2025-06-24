@@ -31,6 +31,7 @@ export default function AdminPropertiesPage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const filterByUserId = searchParams.get('userId');
+  const filterByPropertyType = searchParams.get('type');
   const [filterUserName, setFilterUserName] = useState<string | null>(null);
 
 
@@ -42,10 +43,15 @@ export default function AdminPropertiesPage() {
     setError(null);
     setFilterUserName(null);
 
-    let apiUrl = '/api/properties';
+    const params = new URLSearchParams();
     if (filterByUserId) {
-      apiUrl += `?submittedById=${filterByUserId}`;
+        params.set('submittedById', filterByUserId);
     }
+    if (filterByPropertyType) {
+        params.set('propertyType', filterByPropertyType);
+    }
+
+    const apiUrl = `/api/properties?${params.toString()}`;
 
     try {
       const res = await fetch(apiUrl, {
@@ -124,7 +130,7 @@ export default function AdminPropertiesPage() {
         setIsLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, isAuthLoading, filterByUserId]); // Add filterByUserId to dependencies
+  }, [token, isAuthLoading, filterByUserId, filterByPropertyType]);
 
   const handleUpdateStatus = async (propertyId: string, newStatus: 'Approved' | 'Rejected' | 'Pending') => {
     if (!token) {
@@ -231,10 +237,14 @@ export default function AdminPropertiesPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Manage Properties</h1>
+           <h1 className="text-3xl font-bold tracking-tight">
+            {filterByPropertyType ? `Manage ${filterByPropertyType}s` : 'Manage Properties'}
+          </h1>
           <p className="text-muted-foreground">
             {filterByUserId && filterUserName 
               ? `Showing properties submitted by ${filterUserName}.` 
+              : filterByPropertyType
+              ? `View, edit, approve, and manage all ${filterByPropertyType.toLowerCase()} listings.`
               : `View, edit, approve, and manage all property listings.`}
           </p>
         </div>
@@ -243,7 +253,7 @@ export default function AdminPropertiesPage() {
         </Button>
       </div>
 
-      {filterByUserId && (
+      {(filterByUserId || filterByPropertyType) && (
         <Button variant="outline" asChild>
           <Link href="/admin/properties"><RotateCcw className="mr-2 h-4 w-4" /> Show All Properties</Link>
         </Button>
@@ -269,7 +279,7 @@ export default function AdminPropertiesPage() {
               <Building className="mx-auto h-12 w-12 text-muted-foreground" />
               <h3 className="mt-2 text-sm font-medium text-foreground">No properties found</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                {filterByUserId ? "This user has not submitted any properties." : "Get started by adding a new property, or check your database and filters."}
+                {filterByUserId ? "This user has not submitted any properties." : filterByPropertyType ? `No ${filterByPropertyType.toLowerCase()} listings found.` : "Get started by adding a new property, or check your database and filters."}
               </p>
             </div>
           ) : !error ? (
@@ -289,7 +299,7 @@ export default function AdminPropertiesPage() {
                   {properties.map((prop) => (
                     <tr key={prop.id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">{prop.address}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">${prop.price.toLocaleString()}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">Rs {prop.price.toLocaleString()}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {prop.submittedBy ? (
                           <div className="flex items-center gap-1">

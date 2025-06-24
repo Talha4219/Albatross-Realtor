@@ -13,7 +13,7 @@ import { Calculator, Percent, CalendarClock, PiggyBank } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 const LoanCalculatorSchema = z.object({
-  principal: z.coerce.number().min(1000, "Loan amount must be at least $1,000.").max(100000000, "Loan amount cannot exceed $100,000,000."),
+  principal: z.coerce.number().min(1000, "Loan amount must be at least Rs 1,000.").max(100000000, "Loan amount cannot exceed Rs 100,000,000."),
   annualInterestRate: z.coerce.number().min(0.1, "Interest rate must be at least 0.1%.").max(30, "Interest rate cannot exceed 30%."),
   loanTenureYears: z.coerce.number().min(1, "Loan tenure must be at least 1 year.").max(40, "Loan tenure cannot exceed 40 years."),
 });
@@ -81,7 +81,7 @@ export default function LoanCalculatorForm() {
             name="principal"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="flex items-center gap-1"><PiggyBank className="w-4 h-4 text-muted-foreground" />Loan Amount ($)</FormLabel>
+                <FormLabel className="flex items-center gap-1"><PiggyBank className="w-4 h-4 text-muted-foreground" />Loan Amount (Rs)</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="e.g., 250000" {...field} className="text-base" />
                 </FormControl>
@@ -131,27 +131,27 @@ export default function LoanCalculatorForm() {
             <div className="flex justify-between items-center">
               <p className="text-lg font-medium">Monthly Payment:</p>
               <p className="text-2xl font-semibold text-accent">
-                ${result.monthlyPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                Rs {result.monthlyPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
             <Separator />
             <div className="flex justify-between items-center">
               <p className="text-md">Total Principal Paid:</p>
               <p className="text-lg font-medium text-foreground">
-                ${form.getValues('principal').toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                Rs {form.getValues('principal').toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
             <div className="flex justify-between items-center">
               <p className="text-md">Total Interest Paid:</p>
               <p className="text-lg font-medium text-foreground">
-                ${result.totalInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                Rs {result.totalInterest.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
             <Separator />
             <div className="flex justify-between items-center">
               <p className="text-lg font-semibold">Total Cost of Loan:</p>
               <p className="text-xl font-bold text-primary">
-                ${result.totalPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                Rs {result.totalPayment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
           </CardContent>
