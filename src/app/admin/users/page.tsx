@@ -212,7 +212,7 @@ export default function AdminUsersPage() {
                               <SelectValue placeholder="Set role" />
                             </SelectTrigger>
                             <SelectContent>
-                              {(['user', 'admin'] as UserRole[]).map(roleOption => (
+                              {(['user', 'agent', 'admin'] as UserRole[]).map(roleOption => (
                                 <SelectItem key={roleOption} value={roleOption} className="text-xs capitalize">
                                   {roleOption.charAt(0).toUpperCase() + roleOption.slice(1)}
                                 </SelectItem>

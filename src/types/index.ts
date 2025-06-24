@@ -1,6 +1,6 @@
 import type { Types } from 'mongoose';
-import type { UserRole } from '@/models/User';
 
+export type UserRole = 'user' | 'agent' | 'admin';
 export type PropertyTypeEnum = 'House' | 'Apartment' | 'Condo' | 'Townhouse' | 'Land';
 export type PropertyStatusEnum = 'For Sale' | 'For Rent' | 'Sold' | 'Pending Approval' | 'Draft';
 export type PropertyApprovalStatusEnum = 'Pending' | 'Approved' | 'Rejected';

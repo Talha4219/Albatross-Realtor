@@ -1,15 +1,16 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import dbConnect from '@/lib/mongodb';
-import User, { type UserRole } from '@/models/User';
+import User from '@/models/User';
 import mongoose from 'mongoose';
 import { z } from 'zod';
+import type { UserRole } from '@/types';
 
 const ADMIN_ROLE = 'admin';
 const ADMIN_SUPER_EMAIL = process.env.ADMIN_EMAIL || 'admin@albatrossrealtor.com';
 
 const UpdateRoleSchema = z.object({
-  role: z.enum(['user', 'admin']),
+  role: z.enum(['user', 'agent', 'admin']),
 });
 
 export async function PATCH(request: NextRequest, { params }: { params: { userId: string } }) {

@@ -18,15 +18,12 @@ interface PropertyCardProps {
 
 const DEFAULT_PLACEHOLDER_IMAGE = 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxwcm9wZXJ0eXxlbnwwfHx8fDE3NDk3MDQ5NjR8MA&ixlib=rb-4.1.0&q=80&w=1080';
 
-const isValidPlaceholdCoUrl = (url: string | undefined): boolean => {
+const isValidImageUrl = (url: string | undefined): boolean => {
   if (!url) return false;
-  try {
-    const parsedUrl = new URL(url);
-    return parsedUrl.hostname === 'placehold.co';
-  } catch (e) {
-    return false;
-  }
+  // Basic check for common image hosting domains or data URIs
+  return url.startsWith('https://images.unsplash.com') || url.startsWith('https://placehold.co') || url.startsWith('data:image');
 };
+
 
 export default function PropertyCard({ property }: PropertyCardProps) {
   const { addSavedProperty, removeSavedProperty, isPropertySaved } = useSavedProperties();
@@ -49,7 +46,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   const timeAgo = formatDistanceToNow(postedDate, { addSuffix: true });
 
   const imageToDisplay = 
-    property.images && property.images.length > 0 && (isValidPlaceholdCoUrl(property.images[0]) || property.images[0].startsWith('https://images.unsplash.com'))
+    property.images && property.images.length > 0 && isValidImageUrl(property.images[0])
     ? property.images[0]
     : DEFAULT_PLACEHOLDER_IMAGE;
 

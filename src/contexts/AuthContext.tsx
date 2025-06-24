@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import type { UserRole } from '@/models/User'; // Import UserRole
+import type { UserRole } from '@/types';
 
 // Define a more detailed User type
 interface User {

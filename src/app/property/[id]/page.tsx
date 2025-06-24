@@ -4,8 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import Image from 'next/image';
-import type { Property, PropertyTypeEnum } from '@/types'; // Added PropertyTypeEnum
-import { getPropertyById, mockProperties } from '@/lib/mock-data';
+import type { Property, PropertyTypeEnum, UserProfile } from '@/types';
 import { PropertyCarousel } from '@/components/property/PropertyCarousel';
 import MapPlaceholder from '@/components/map/MapPlaceholder';
 import { Button } from '@/components/ui/button';
@@ -25,21 +24,38 @@ export default function PropertyDetailPage() {
   const id = params.id as string;
   const [property, setProperty] = useState<Property | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-
   const { addSavedProperty, removeSavedProperty, isPropertySaved } = useSavedProperties();
   const { toast } = useToast();
   
   useEffect(() => {
     if (id) {
-      const foundProperty = getPropertyById(id);
-      if (foundProperty) {
-        setProperty(foundProperty);
-      } else {
-        notFound(); 
-      }
-      setIsLoading(false);
+      const fetchProperty = async () => {
+        setIsLoading(true);
+        try {
+          const res = await fetch(`/api/properties/${id}`);
+          if (!res.ok) {
+            if (res.status === 404) {
+              notFound();
+            }
+            throw new Error('Failed to fetch property data.');
+          }
+          const result = await res.json();
+          if (result.success) {
+            setProperty(result.data);
+          } else {
+            notFound();
+          }
+        } catch (error) {
+          console.error("Error fetching property:", error);
+          toast({ title: "Error", description: "Could not load property details.", variant: "destructive" });
+          notFound();
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchProperty();
     }
-  }, [id]);
+  }, [id, toast]);
 
   if (isLoading) {
     return (
@@ -77,6 +93,7 @@ export default function PropertyDetailPage() {
   const postedDate = new Date(property.postedDate);
   const timeAgo = formatDistanceToNow(postedDate, { addSuffix: true });
 
+  const submittedByUser = property.submittedBy as UserProfile;
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
@@ -85,7 +102,7 @@ export default function PropertyDetailPage() {
           <PropertyCarousel 
             images={property.images} 
             altTextPrefix={`Image of ${property.address}`}
-            propertyType={property.propertyType as PropertyTypeEnum} // Pass propertyType
+            propertyType={property.propertyType as PropertyTypeEnum}
           />
         </div>
         <div className="lg:col-span-1 space-y-6">
@@ -125,6 +142,31 @@ export default function PropertyDetailPage() {
                <InfoItem icon={<Tag className="text-primary" />} label="Posted" value={timeAgo} />
             </CardContent>
           </Card>
+           {submittedByUser && (
+             <Card>
+              <CardHeader>
+                <CardTitle className="font-headline">Listed By</CardTitle>
+              </CardHeader>
+              <CardContent className="flex items-center space-x-4">
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={submittedByUser.profilePictureUrl || ''} alt={submittedByUser.name} data-ai-hint="person portrait"/>
+                  <AvatarFallback>{submittedByUser.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-semibold text-lg">{submittedByUser.name}</p>
+                  <p className="text-sm text-muted-foreground">Listing Contributor</p>
+                   <p className="text-sm text-muted-foreground">{submittedByUser.email}</p>
+                </div>
+              </CardContent>
+              <CardContent>
+                <Button asChild className="w-full font-headline" variant="outline">
+                    <a href={`mailto:${submittedByUser.email}?subject=Inquiry about ${property.address}`}>
+                        <Mail className="w-4 h-4 mr-2"/> Contact Lister
+                    </a>
+                </Button>
+              </CardContent>
+            </Card>
+           )}
            <Button variant="outline" onClick={handleReportListing} className="w-full font-headline">
             <AlertTriangle className="w-4 h-4 mr-2 text-destructive" /> Report This Listing
           </Button>
@@ -229,7 +271,7 @@ const SkeletonPropertyPage = () => (
             <Skeleton className="h-12 w-1/2" /> 
           </CardHeader>
           <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {[...Array(4)].map((_, i) => (
+            {[...Array(6)].map((_, i) => (
               <div key={i} className="space-y-1">
                 <Skeleton className="h-4 w-12" />
                 <Skeleton className="h-5 w-16" />
@@ -239,10 +281,7 @@ const SkeletonPropertyPage = () => (
         </Card>
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <Skeleton className="h-6 w-1/3" /> 
-              <Skeleton className="h-5 w-24" /> 
-            </div>
+            <Skeleton className="h-6 w-1/3" /> 
           </CardHeader>
           <CardContent className="flex items-center space-x-4">
             <Skeleton className="w-20 h-20 rounded-full" />
