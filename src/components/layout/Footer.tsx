@@ -2,6 +2,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
@@ -29,6 +30,7 @@ export default function Footer() {
     ],
     services: [
       { title: 'Search Properties', href: '/#property-search-section' },
+      { title: 'Find an Agent', href: '/agents' },
       { title: 'New Projects', href: '/new-projects' },
       { title: 'Loan Calculator', href: '/financing/calculator' },
     ],
@@ -151,8 +153,14 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center text-sm">
           <div className="flex flex-col sm:flex-row items-center gap-x-4 gap-y-2 mb-4 md:mb-0">
             <Link href="/" className="flex items-center gap-1.5 text-foreground hover:text-primary transition-colors">
-              <Home className="w-5 h-5 text-primary" />
-              <span className="font-semibold">Albatross Realtor</span>
+              {/* <Home className="w-5 h-5 text-primary" />
+              <span className="font-semibold">Albatross Realtor</span> */}
+               <Image 
+                  src="/logo.png" // Path to your image
+                  alt="logo"
+                  width={100} // Desired width
+                  height={100} // Desired height
+                />
             </Link>
             <p>&copy; {currentYear}. All Rights Reserved.</p>
              <p>

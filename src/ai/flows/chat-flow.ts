@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A conversational AI chat flow for real estate assistance.
@@ -9,7 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import type { Property, PropertyStatusEnum } from '@/types';
+import type { Property } from '@/types';
 
 
 // Define the schema for a single message in the chat history
@@ -54,16 +55,19 @@ const getPropertyListingsTool = ai.defineTool(
     ).describe("A list of properties matching the criteria."),
   },
   async (input) => {
-    // In a real app, this would fetch from our database via our own API
     console.log(`Tool called: Searching for properties ${input.status} in ${input.location}`);
     const query = new URLSearchParams({
       status: input.status,
       search: input.location,
     }).toString();
     
-    // NOTE: This assumes your dev server is running on localhost:9002
-    // In production, this URL should point to the deployed API endpoint.
-    const response = await fetch(`http://localhost:9002/api/properties?${query}`);
+    // Use a relative path for the API call to work in any environment
+    const apiUrl = `/api/properties?${query}`;
+
+    // Note: This requires the server to handle the request at this path.
+    // Fetch from the relative path, assuming the UI and API are on the same domain.
+    const response = await fetch(new URL(apiUrl, 'http://localhost:9002'));
+
     if (!response.ok) {
         console.error("Failed to fetch properties from API for tool");
         return [];
@@ -106,7 +110,7 @@ Your goal is to help users find properties, navigate the website, and answer the
 
 - **PROPERTY SEARCH**:
   - If a user asks for specific properties (e.g., "find apartments for rent in Metropolis"), you MUST use the \`getPropertyListings\` tool to find them.
-  - When you get results from the tool, present them as a friendly, formatted list. Include the address, price, beds, and baths.
+  - When you get results from the tool, present them as a friendly, formatted list. Include the address, price, beds, and baths. Most importantly, **provide a link to each property's detail page**, formatted like this: \`[View Details](/property/{{id}})\`.
   - If the tool returns an empty list, inform the user that you couldn't find any matching properties and suggest they try a broader search or browse the main property pages.
   - If the tool returns several properties, list them and also provide a link to the main search page for more options, like: "Here are a few I found... You can see more on our search page. [See all properties for rent](/properties/for-rent)".
 

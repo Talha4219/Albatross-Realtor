@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -22,12 +21,18 @@ interface PropertyCarouselProps {
 
 const DEFAULT_PLACEHOLDER_IMAGE_CAROUSEL = 'https://placehold.co/800x500.png';
 
-const isValidPlaceholdCoUrl = (url: string | undefined): boolean => {
+const isValidImageUrl = (url: string | undefined): boolean => {
   if (!url) return false;
+  // Allow data URIs for uploaded images and common image hosts
+  if (url.startsWith('data:image')) {
+    return true;
+  }
   try {
+    const validHostnames = ['images.unsplash.com', 'placehold.co'];
     const parsedUrl = new URL(url);
-    return parsedUrl.hostname === 'placehold.co';
+    return validHostnames.includes(parsedUrl.hostname);
   } catch (e) {
+    // URL parsing failed, so it's not a valid URL.
     return false;
   }
 };
@@ -54,7 +59,8 @@ export function PropertyCarousel({ images, altTextPrefix, propertyType }: Proper
     if (!images || images.length === 0) {
       return [DEFAULT_PLACEHOLDER_IMAGE_CAROUSEL];
     }
-    return images.map(src => isValidPlaceholdCoUrl(src) ? src : DEFAULT_PLACEHOLDER_IMAGE_CAROUSEL);
+    // Update the mapping to use the more permissive isValidImageUrl function
+    return images.map(src => isValidImageUrl(src) ? src : DEFAULT_PLACEHOLDER_IMAGE_CAROUSEL);
   }, [images]);
 
   if (processedImages.length === 0) {

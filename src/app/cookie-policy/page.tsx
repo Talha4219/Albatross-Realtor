@@ -1,7 +1,14 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Cookie } from 'lucide-react';
+import { Cookie, FileText, Settings, ShieldCheck, Mail, Info } from 'lucide-react';
 import type { Metadata } from 'next';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Cookie Policy | Albatross Realtor',
@@ -24,28 +31,70 @@ export default function CookiePolicyPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="prose dark:prose-invert max-w-none text-foreground/90">
-            <p>Welcome to Albatross Realtor's Cookie Policy. This page explains what cookies are, how we use them, the types of cookies we use, and how you can manage your cookie preferences.</p>
+            <p>This Cookie Policy explains what cookies are and how we use them. You should read this policy to understand what cookies are, how we use them, the types of cookies we use, the information we collect using cookies, how that information is used, and how to control your cookie preferences.</p>
+            <p>For further information on how we use, store, and keep your personal data secure, see our <Link href="/privacy-policy" className="text-primary underline">Privacy Policy</Link>.</p>
             
-            <h3>What Are Cookies?</h3>
-            <p>Cookies are small text files that are placed on your computer or mobile device when you visit a website. They are widely used to make websites work, or work more efficiently, as well as to provide information to the owners of the site.</p>
-            
-            <h3>How We Use Cookies</h3>
-            <p>We use cookies for several reasons, detailed below. Unfortunately, in most cases, there are no industry-standard options for disabling cookies without completely disabling the functionality and features they add to this site. It is recommended that you leave on all cookies if you are not sure whether you need them or not in case they are used to provide a service that you use.</p>
-            <ul>
-                <li><strong>Essential Cookies:</strong> These are necessary for the website to function and cannot be switched off in our systems. They are usually only set in response to actions made by you which amount to a request for services, such as setting your privacy preferences, logging in, or filling in forms.</li>
-                <li><strong>Performance and Analytics Cookies:</strong> These cookies allow us to count visits and traffic sources so we can measure and improve the performance of our site. They help us to know which pages are the most and least popular and see how visitors move around the site.</li>
-                <li><strong>Functionality Cookies:</strong> These cookies enable the website to provide enhanced functionality and personalization. For example, we use them to remember your saved properties and login state.</li>
-            </ul>
+            <Accordion type="single" collapsible className="w-full mt-6">
+                <AccordionItem value="item-1">
+                    <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+                        <div className="flex items-center gap-2">
+                            <Info className="w-5 h-5 text-primary" /> What are Cookies?
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-base">
+                        <p>Cookies are small text files that are stored on your browser or device by websites, apps, online media, and advertisements. They are widely used to make websites work more efficiently and to provide reporting information.</p>
+                        <p>Cookies can be "Persistent" or "Session" cookies. Persistent cookies remain on your personal computer or mobile device when you go offline, while Session cookies are deleted as soon as you close your web browser.</p>
+                    </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-2">
+                    <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+                        <div className="flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-primary" /> How We Use Cookies
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-base">
+                         <p>We use first-party and third-party cookies for several reasons. Some cookies are required for technical reasons for our Website to operate, and we refer to these as "essential" or "strictly necessary" cookies. Other cookies also enable us to track and target the interests of our users to enhance the experience on our Website. For example, we use cookies to remember your login status and property preferences.</p>
+                    </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-3">
+                    <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+                        <div className="flex items-center gap-2">
+                            <ShieldCheck className="w-5 h-5 text-primary" /> Types of Cookies We Use
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-base">
+                         <h4 className="font-semibold mt-2">Essential Website Cookies</h4>
+                         <p>These cookies are strictly necessary to provide you with services available through our Website and to use some of its features, such as access to secure areas. Because these cookies are strictly necessary to deliver the Website to you, you cannot refuse them without impacting how our Website functions.</p>
 
-            <h3>Managing Your Cookie Preferences</h3>
-            <p>You can prevent the setting of cookies by adjusting the settings on your browser (see your browser's Help for how to do this). Be aware that disabling cookies will affect the functionality of this and many other websites that you visit. Disabling cookies will usually result in also disabling certain functionality and features of this site. Therefore it is recommended that you do not disable cookies.</p>
-
-            <h3>More Information</h3>
-            <p>Hopefully, that has clarified things for you. If you are still looking for more information, you can contact us through one of our preferred contact methods:</p>
-            <ul>
-                <li>Email: privacy@albatrossrealtor.com</li>
-                <li>By visiting this link on our website: <a href="/contact">Contact Us</a></li>
-            </ul>
+                         <h4 className="font-semibold mt-4">Performance and Functionality Cookies</h4>
+                         <p>These cookies are used to enhance the performance and functionality of our Website but are non-essential to their use. However, without these cookies, certain functionality (like remembering your saved properties) may become unavailable.</p>
+                         
+                         <h4 className="font-semibold mt-4">Analytics and Customization Cookies</h4>
+                         <p>These cookies collect information that is used either in aggregate form to help us understand how our Website is being used or how effective our marketing campaigns are, or to help us customize our Website for you.</p>
+                    </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-4">
+                    <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+                        <div className="flex items-center gap-2">
+                            <Settings className="w-5 h-5 text-primary" /> How Can You Control Cookies?
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-base">
+                         <p>You have the right to decide whether to accept or reject cookies. You can exercise your cookie rights by setting your preferences in your web browser. Most browsers allow you to control cookies through their settings preferences. However, if you limit the ability of websites to set cookies, you may worsen your overall user experience, since it will no longer be personalized to you.</p>
+                         <p>To find out more about cookies, including how to see what cookies have been set, visit <a href="https://www.aboutcookies.org" target="_blank" rel="noopener noreferrer" className="text-primary underline">www.aboutcookies.org</a> or <a href="https://www.allaboutcookies.org" target="_blank" rel="noopener noreferrer" className="text-primary underline">www.allaboutcookies.org</a>.</p>
+                    </AccordionContent>
+                </AccordionItem>
+                 <AccordionItem value="item-5" className="border-b-0">
+                    <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+                        <div className="flex items-center gap-2">
+                            <Mail className="w-5 h-5 text-primary" /> Contact Us
+                        </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="text-base">
+                        <p>If you have any questions about our use of cookies or other technologies, please email us at <a href="mailto:privacy@albatrossrealtor.com" className="text-primary underline">privacy@albatrossrealtor.com</a>.</p>
+                    </AccordionContent>
+                </AccordionItem>
+            </Accordion>
         </CardContent>
       </Card>
     </div>

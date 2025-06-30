@@ -49,7 +49,9 @@
     "genkit": "1.5.0",
     "jose": "^5.6.3",
     "jsonwebtoken": "^9.0.2",
-    "lucide-react": "^0.475.0",
+    "leaflet": "^1.9.4",
+    "leaflet-defaulticon-compatibility": "^0.1.2",
+    "lucide-react": "^0.400.0",
     "mongoose": "^8.5.1",
     "next": "^15.0.0",
     "next-themes": "^0.3.0",
@@ -58,7 +60,9 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "rc",
     "react-hook-form": "^7.54.2",
+    "react-leaflet": "^4.2.1",
     "recharts": "^2.15.1",
+    "resend": "^3.4.0",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.2"
@@ -66,6 +70,7 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.6",
+    "@types/leaflet": "^1.9.12",
     "@types/node": "^20",
     "@types/react": "rc",
     "@types/react-dom": "rc",

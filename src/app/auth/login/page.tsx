@@ -41,6 +41,8 @@ export default function LoginPage() {
     if (loggedInUser) {
       if (loggedInUser.role === 'admin') {
         router.push('/admin/dashboard');
+      } else if (loggedInUser.role === 'agent') {
+        router.push('/agent/dashboard');
       } else {
         router.push('/'); // Redirect regular users to homepage
       }
@@ -87,7 +89,12 @@ export default function LoginPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <Label htmlFor="password">Password</Label>
+                   <div className="flex justify-between items-center">
+                    <Label htmlFor="password">Password</Label>
+                    <Button variant="link" size="sm" asChild className="p-0 text-xs h-auto text-muted-foreground">
+                        <Link href="/auth/forgot-password">Forgot Password?</Link>
+                    </Button>
+                  </div>
                   <FormControl>
                     <Input id="password" type="password" placeholder="••••••••" {...field} required className="text-base" />
                   </FormControl>

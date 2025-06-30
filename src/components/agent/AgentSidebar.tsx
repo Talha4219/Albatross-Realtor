@@ -1,0 +1,81 @@
+
+"use client";
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { LayoutGrid, Building, UserCircle, LogOut, PlusCircle, Home, LandPlot, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroupLabel } from '@/components/ui/sidebar'; 
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+
+const agentNavItems = [
+  { href: '/agent/dashboard', label: 'Dashboard', icon: LayoutGrid, type: 'item' },
+  { type: 'separator' },
+  { type: 'heading', label: 'Listings' },
+  { href: '/agent/properties', label: 'My Properties', icon: Building, isSubItem: true, type: 'item' },
+  { href: '/agent/properties?type=Plot', label: 'My Plots', icon: LandPlot, isSubItem: true, type: 'item' },
+  { href: '/add-listing', label: 'Add New Listing', icon: PlusCircle, isSubItem: true, type: 'item' },
+  { type: 'separator' },
+  { type: 'heading', label: 'Account' },
+  { href: '/profile', label: 'My Profile', icon: UserCircle, type: 'item' },
+  { href: '/', label: 'Main Site', icon: Home, type: 'item' },
+];
+
+export default function AgentSidebar() {
+  const pathname = usePathname();
+  const { logout } = useAuth();
+
+  return (
+    <Sidebar side="left" variant="sidebar" collapsible="icon">
+      <SidebarHeader className="border-b border-sidebar-border">
+        <Button variant="ghost" className="w-full justify-start gap-2 px-2 text-lg font-semibold" asChild>
+          <Link href="/agent/dashboard">
+            <UserCircle className="h-7 w-7 text-primary" />
+            <span className="text-sidebar-foreground group-data-[collapsible=icon]:hidden">Agent Panel</span>
+          </Link>
+        </Button>
+      </SidebarHeader>
+      <SidebarContent className="flex-grow">
+        <SidebarMenu>
+          {agentNavItems.map((item, index) => {
+            if (item.type === 'separator') {
+              return <SidebarSeparator key={`sep-${index}`} className="my-1" />;
+            }
+            if (item.type === 'heading') {
+              return <SidebarGroupLabel key={`head-${index}`} className="px-2 pt-2 group-data-[collapsible=icon]:hidden">{item.label}</SidebarGroupLabel>;
+            }
+            if (item.type === 'item') {
+              return (
+                <SidebarMenuItem key={item.href} className={cn((item as any).isSubItem && "group-data-[state=expanded]:pl-4")}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === item.href || (item.href && item.href !== '/agent/dashboard' && pathname.startsWith(item.href))}
+                    tooltip={{children: item.label}}
+                  >
+                    <Link href={item.href!}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            }
+            return null;
+          })}
+        </SidebarMenu>
+      </SidebarContent>
+      <SidebarFooter className="border-t border-sidebar-border p-2">
+          <SidebarMenuButton
+            onClick={logout}
+            className="w-full group-data-[collapsible=icon]:justify-center"
+            tooltip={{children: "Logout"}}
+            variant="outline"
+          >
+            <LogOut />
+            <span className="group-data-[collapsible=icon]:hidden">Logout</span>
+          </SidebarMenuButton>
+      </SidebarFooter>
+    </Sidebar>
+  );
+}

@@ -44,9 +44,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     } else if (approvalStatus === 'Approved' && propertyToUpdate.status === 'Pending Approval') {
         // If it was 'Pending Approval' and now 'Approved', set its actual listing status e.g. 'For Sale'
         // This assumes the original intended status was stored or is defaulted.
-        // For simplicity, let's assume it becomes 'For Sale' or keeps its existing non-pending status.
-        // If property.status was 'Pending Approval', we might need to know what it *should* become.
-        // Let's assume 'For Sale' if it was 'Pending Approval'
+        // For simplicity, let's assume it becomes 'For Sale' if it was 'Pending Approval'
         if(propertyToUpdate.status === 'Pending Approval' || propertyToUpdate.status === 'Draft'){
             propertyToUpdate.status = 'For Sale'; // Default active status post-approval
         }

@@ -1,5 +1,7 @@
 
+
 import mongoose, { Document, Schema, Model, Types } from 'mongoose';
+import './User'; // Ensure User model is registered for population
 import type { Property as PropertyType, PropertyTypeEnum, PropertyStatusEnum, PropertyApprovalStatusEnum } from '@/types';
 
 export interface IProperty extends Omit<PropertyType, 'id' | 'postedDate' | 'propertyType' | 'status' | 'approvalStatus' | 'submittedBy'>, Document {
@@ -9,6 +11,7 @@ export interface IProperty extends Omit<PropertyType, 'id' | 'postedDate' | 'pro
   status: PropertyStatusEnum;
   approvalStatus: PropertyApprovalStatusEnum;
   submittedBy?: mongoose.Schema.Types.ObjectId; // Link to a User model
+  views: number;
 }
 
 
@@ -23,7 +26,16 @@ const PropertySchema = new Schema<IProperty>({
   areaSqFt: { type: Number, required: true },
   description: { type: String, required: true },
   images: [{ type: String }],
-  propertyType: { type: String, enum: ['House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot'], required: true },
+  propertyType: { 
+    type: String, 
+    enum: [
+        'House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot', 
+        'Flat', 'Upper Portion', 'Lower Portion', 'Farm House', 'Room', 'Penthouse',
+        'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form',
+        'Office', 'Shop', 'Warehouse', 'Factory', 'Building', 'Other'
+    ], 
+    required: true 
+  },
   yearBuilt: Number,
   features: [{ type: String }],
   latitude: Number,
@@ -33,6 +45,7 @@ const PropertySchema = new Schema<IProperty>({
   isVerified: { type: Boolean, default: false },
   approvalStatus: { type: String, enum: ['Pending', 'Approved', 'Rejected'], required: true, default: 'Pending' },
   submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
+  views: { type: Number, default: 0 },
 }, {
   timestamps: true,
   toJSON: {

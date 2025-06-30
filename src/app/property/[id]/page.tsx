@@ -7,9 +7,10 @@ import Image from 'next/image';
 import type { Property, PropertyTypeEnum, UserProfile } from '@/types';
 import { PropertyCarousel } from '@/components/property/PropertyCarousel';
 import MapPlaceholder from '@/components/map/MapPlaceholder';
+import InteractiveMap from '@/components/map/InteractiveMap';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useSavedProperties } from '@/contexts/SavedPropertiesContext';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +19,15 @@ import { formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; 
 import { Skeleton } from '@/components/ui/skeleton'; 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+} from '@/components/ui/dialog';
+
 
 export default function PropertyDetailPage() {
   const params = useParams();
@@ -42,6 +52,8 @@ export default function PropertyDetailPage() {
           const result = await res.json();
           if (result.success) {
             setProperty(result.data);
+            // Fire-and-forget request to increment view count
+            fetch(`/api/properties/${id}/increment-view`, { method: 'PATCH' });
           } else {
             notFound();
           }
@@ -80,14 +92,6 @@ export default function PropertyDetailPage() {
       addSavedProperty(property.id);
       toast({ title: "Property Saved!", description: `${property.address} added to your saved list.` });
     }
-  };
-
-  const handleReportListing = () => {
-    toast({
-      title: "Listing Reported",
-      description: "Thank you for your feedback. We will review this listing.",
-      variant: "default",
-    });
   };
 
   const postedDate = new Date(property.postedDate);
@@ -155,21 +159,55 @@ export default function PropertyDetailPage() {
                 <div>
                   <p className="font-semibold text-lg">{submittedByUser.name}</p>
                   <p className="text-sm text-muted-foreground">Listing Contributor</p>
-                   <p className="text-sm text-muted-foreground">{submittedByUser.email}</p>
                 </div>
               </CardContent>
               <CardContent>
-                <Button asChild className="w-full font-headline" variant="outline">
-                    <a href={`mailto:${submittedByUser.email}?subject=Inquiry about ${property.address}`}>
-                        <Mail className="w-4 h-4 mr-2"/> Contact Lister
-                    </a>
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button className="w-full font-headline">
+                      <Phone className="w-4 h-4 mr-2" /> Contact Now
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Contact Information</DialogTitle>
+                      <DialogDescription>
+                        Contact details for the lister of {property.address}.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                       <div className="flex items-center gap-4">
+                        <Avatar className="h-16 w-16">
+                           <AvatarImage src={submittedByUser.profilePictureUrl || ''} alt={submittedByUser.name} data-ai-hint="person portrait"/>
+                           <AvatarFallback>{submittedByUser.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="text-lg font-semibold">{submittedByUser.name}</p>
+                            <p className="text-sm text-muted-foreground">{submittedByUser.role}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-2 text-sm border-t pt-4">
+                          <p className="flex items-center gap-2 font-medium">
+                            <a href={`mailto:${submittedByUser.email}`} className="flex items-center gap-2 hover:underline">
+                              <Mail className="w-4 h-4 text-primary" /> {submittedByUser.email}
+                            </a>
+                          </p>
+                          {submittedByUser.phone ? (
+                              <p className="flex items-center gap-2 font-medium">
+                                <a href={`tel:${submittedByUser.phone}`} className="flex items-center gap-2 hover:underline">
+                                  <Phone className="w-4 h-4 text-primary" /> {submittedByUser.phone}
+                                </a>
+                              </p>
+                          ) : (
+                              <p className="flex items-center gap-2 text-muted-foreground"><Phone className="w-4 h-4" /> No phone number provided.</p>
+                          )}
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
            )}
-           <Button variant="outline" onClick={handleReportListing} className="w-full font-headline">
-            <AlertTriangle className="w-4 h-4 mr-2 text-destructive" /> Report This Listing
-          </Button>
         </div>
       </div>
 
@@ -209,10 +247,15 @@ export default function PropertyDetailPage() {
             <CardHeader>
               <CardTitle className="font-headline">Location</CardTitle>
             </CardHeader>
-            <CardContent>
-               <MapPlaceholder 
-                height="300px" 
-              />
+            <CardContent className="h-[300px] p-0">
+               {property.latitude && property.longitude ? (
+                <InteractiveMap 
+                  properties={[property]}
+                  className="h-full w-full rounded-b-lg"
+                />
+              ) : (
+                <MapPlaceholder height="300px" />
+              )}
             </CardContent>
           </Card>
           <Card>

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 import {
   Home,
   Search,
@@ -18,7 +17,7 @@ import {
   LayoutDashboard,
   UserPlus,
   FilePlus,
-  LandPlot,
+  Heart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +40,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext'; 
 import { ThemeToggle } from '@/components/theme/ThemeToggle'; 
 import { ScrollArea } from '@/components/ui/scroll-area';
+import Image from 'next/image';
 
 interface NavSubItem {
   title: string;
@@ -55,7 +55,6 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  // { title: 'Home', href: '/' },
   {
     title: 'Properties',
     subItems: [
@@ -73,6 +72,7 @@ const navItems: NavItem[] = [
       { title: 'All New Projects', href: '/new-projects', description: 'View all developments' },
     ],
   },
+  { title: 'Agents', href: '/agents' },
   {
     title: 'Resources',
     subItems: [
@@ -114,59 +114,6 @@ export default function Header() {
   const handleLogout = () => {
     logout();
   };
-
-  const renderNavLinks = (isMobile = false) => (
-    <>
-      {navItems.map((item) =>
-        item.href ? (
-          <Link
-            key={item.title}
-            href={item.href}
-            onClick={() => isMobile && setIsMobileMenuOpen(false)}
-            className={cn(
-              "text-sm font-medium transition-colors py-2 px-3 rounded-md",
-              pathname === item.href
-                ? "bg-primary/10 text-primary dark:bg-primary/20"
-                : "text-foreground/70 hover:text-foreground hover:bg-muted/50",
-              isMobile ? "text-base w-full justify-start" : ""
-            )}
-          >
-            {item.title}
-          </Link>
-        ) : (
-          <DropdownMenu key={item.title}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className={cn(
-                  "text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-muted/50 py-2 px-3 flex items-center",
-                  isMobile ? "text-base w-full justify-start" : "",
-                  item.subItems && item.subItems.some(sub => sub.href && (pathname.startsWith(sub.href) || (sub.href === '/new-projects' && pathname === '/new-projects'))) ? "bg-primary/10 text-primary dark:bg-primary/20" : ""
-                )}
-              >
-                {item.title}
-                {!isMobile && <ChevronDown className="h-4 w-4 ml-1 opacity-70" />}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-64">
-              {item.subItems?.map((subItem) => (
-                <DropdownMenuItem key={subItem.title} asChild>
-                  <Link 
-                    href={subItem.href} 
-                    onClick={() => isMobile && setIsMobileMenuOpen(false)}
-                    className={cn("flex flex-col items-start p-2", pathname === subItem.href ? "bg-muted font-medium" : "")}
-                  >
-                    <div className="font-medium">{subItem.title}</div>
-                    {subItem.description && <p className="text-xs text-muted-foreground mt-0.5">{subItem.description}</p>}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
-      )}
-    </>
-  );
   
   const renderMobileNavLinks = () => (
     <div className="flex flex-col space-y-1 p-2">
@@ -228,15 +175,14 @@ export default function Header() {
                 <SheetHeader className="border-b p-4 shrink-0">
                   <SheetTitle className="flex items-center gap-2">
                      <Link href="/" className="flex items-center gap-2" onClick={() => setIsMobileMenuOpen(false)}>
-                     <Image
-                          src="/logo.png" // Path to the image
-                          alt="Albatross realtor"
-                          width={200} // Desired width
-                          height={100} // Desired height
-                          priority // Optional: Preloads the image for better performance
-                        />
                         {/* <Home className="h-7 w-7 text-primary" />
                         <span className="text-xl font-headline font-semibold text-foreground">Albatross Realtor</span> */}
+                         <Image 
+                          src="/logo.png" // Path to your image
+                          alt="logo"
+                          width={200} // Desired width
+                          height={100} // Desired height
+                        />
                     </Link>
                   </SheetTitle>
                 </SheetHeader>
@@ -253,66 +199,75 @@ export default function Header() {
             </Sheet>
           </div>
           <Link href="/" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
-          <Image
-                          src="/logo.png" // Path to the image
-                          alt="Albatross realtor"
-                          width={200} // Desired width
-                          height={100} // Desired height
-                          priority // Optional: Preloads the image for better performance
-                        />
             {/* <Home className="h-8 w-8 text-primary hidden sm:block" />
             <h1 className="text-2xl font-headline font-semibold">Albatross Realtor</h1> */}
+             <Image 
+              src="/logo.png" // Path to your image
+              alt="logo"
+              width={200} // Desired width
+              height={200} // Desired height
+            />
           </Link>
         </div>
 
         {/* Center: Desktop Navigation */}
-        {!isMobileSearchOpen && (
-          <nav className="hidden md:flex items-center gap-1">
-            {renderNavLinks()}
-          </nav>
-        )}
+        <nav className="hidden md:flex items-center gap-1">
+          {navItems.map((item) =>
+            item.href ? (
+              <Link
+                key={item.title}
+                href={item.href}
+                className={cn(
+                  "text-sm font-medium transition-colors py-2 px-3 rounded-md",
+                  pathname === item.href
+                    ? "bg-primary/10 text-primary dark:bg-primary/20"
+                    : "text-foreground/70 hover:text-foreground hover:bg-muted/50"
+                )}
+              >
+                {item.title}
+              </Link>
+            ) : (
+              <DropdownMenu key={item.title}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "text-sm font-medium text-foreground/70 hover:text-foreground hover:bg-muted/50 py-2 px-3 flex items-center",
+                      item.subItems && item.subItems.some(sub => sub.href && (pathname.startsWith(sub.href) || (sub.href === '/new-projects' && pathname === '/new-projects'))) ? "bg-primary/10 text-primary dark:bg-primary/20" : ""
+                    )}
+                  >
+                    {item.title}
+                    <ChevronDown className="h-4 w-4 ml-1 opacity-70" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64">
+                  {item.subItems?.map((subItem) => (
+                    <DropdownMenuItem key={subItem.title} asChild>
+                      <Link 
+                        href={subItem.href} 
+                        className={cn("flex flex-col items-start p-2", pathname === subItem.href ? "bg-muted font-medium" : "")}
+                      >
+                        <div className="font-medium">{subItem.title}</div>
+                        {subItem.description && <p className="text-xs text-muted-foreground mt-0.5">{subItem.description}</p>}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )
+          )}
+        </nav>
         
         {/* Right: Search, Theme Toggle and Account */}
         <div className="flex items-center gap-1 sm:gap-2"> 
-          {/* Mobile Search Icon / Bar */}
-          <div className="md:hidden">
-            {isMobileSearchOpen ? (
-              <form 
-                onSubmit={(e) => { e.preventDefault(); handleSearchSubmit(mobileSearchTerm); }}
-                className="flex items-center gap-1 absolute inset-x-0 top-0 bg-background p-2 border-b h-16 shadow-md z-10"
-              >
-                <Input
-                  type="search"
-                  placeholder="Search website..."
-                  className="h-10 flex-grow"
-                  autoFocus
-                  value={mobileSearchTerm}
-                  onChange={(e) => setMobileSearchTerm(e.target.value)}
-                  aria-label="Search website"
-                />
-                 <Button type="submit" variant="ghost" size="icon" aria-label="Submit search">
-                  <Search className="h-6 w-6" />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => setIsMobileSearchOpen(false)} aria-label="Close search">
-                  <XIcon className="h-6 w-6" />
-                </Button>
-              </form>
-            ) : (
-              <Button variant="ghost" size="icon" onClick={() => setIsMobileSearchOpen(true)} aria-label="Open search">
-                <Search className="h-6 w-6" />
-              </Button>
-            )}
-          </div>
-
-          {/* Desktop Search Bar */}
           <form 
             onSubmit={(e) => { e.preventDefault(); handleSearchSubmit(desktopSearchTerm); }}
-            className="hidden md:block md:w-48 lg:w-64 xl:w-72" // Adjusted widths
+            className="hidden md:block md:w-48 lg:w-64 xl:w-72"
           >
             <div className="relative">
                 <Input
                 type="search"
-                placeholder="Search website..."
+                placeholder="Search..."
                 className="h-10 pr-10" 
                 value={desktopSearchTerm}
                 onChange={(e) => setDesktopSearchTerm(e.target.value)}
@@ -324,13 +279,9 @@ export default function Header() {
             </div>
           </form>
           
-          {/* Theme Toggle - Desktop */}
-          <div className="hidden md:block">
-            <ThemeToggle />
-          </div>
+          <ThemeToggle />
 
-          {/* Account Menu */}
-           {!isMobileSearchOpen && !isAuthLoading && (
+           {!isAuthLoading && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full" aria-label="User Account">
@@ -344,20 +295,21 @@ export default function Header() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild><Link href="/profile">My Profile</Link></DropdownMenuItem>
                     
-                    {user.role === 'admin' ? (
+                    {user.role === 'admin' && (
                        <DropdownMenuItem asChild>
                         <Link href="/admin/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" />Admin Dashboard</Link>
                       </DropdownMenuItem>
-                    ) : (
-                      <DropdownMenuItem asChild><Link href="/saved">Saved Properties</Link></DropdownMenuItem>
-                    )}
-                    
-                    {user.role === 'admin' && (
-                       <DropdownMenuItem asChild><Link href="/saved">Saved Properties</Link></DropdownMenuItem>
                     )}
 
-                    <DropdownMenuItem asChild><Link href="/properties/new">Add Property</Link></DropdownMenuItem>
-                    <DropdownMenuItem asChild><Link href="/blog/new"><FilePlus className="mr-2 h-4 w-4" />Create Post</Link></DropdownMenuItem>
+                    {user.role === 'agent' && (
+                       <DropdownMenuItem asChild>
+                        <Link href="/agent/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" />Agent Dashboard</Link>
+                      </DropdownMenuItem>
+                    )}
+                    
+                    <DropdownMenuItem asChild><Link href="/my-properties"><FilePlus className="mr-2 h-4 w-4" />My Properties</Link></DropdownMenuItem>
+                    <DropdownMenuItem asChild><Link href="/saved"><Heart className="mr-2 h-4 w-4" />Saved Properties</Link></DropdownMenuItem>
+                    
                   </>
                 ) : (
                   <>
@@ -386,10 +338,6 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
            )}
-           {/* Theme Toggle - Mobile (appears to the right of Account or Search icon) */}
-          <div className="md:hidden">
-            <ThemeToggle />
-          </div>
         </div>
       </div>
     </header>

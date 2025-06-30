@@ -44,7 +44,7 @@ export default function AgentCard({ agent }: AgentCardProps) {
       <Card className="overflow-hidden h-full flex flex-col hover:shadow-xl transition-shadow duration-300">
         <CardHeader className="items-center text-center p-6 bg-muted/20">
           <Avatar className="w-24 h-24 border-2 border-background shadow-md mb-3">
-            <AvatarImage src={agent.imageUrl} alt={agent.name} data-ai-hint="person portrait" />
+            <AvatarImage src={agent.profilePictureUrl} alt={agent.name} data-ai-hint="person portrait" />
             <AvatarFallback className="text-3xl bg-primary text-primary-foreground">{agentInitials}</AvatarFallback>
           </Avatar>
           <div className="relative">
@@ -57,7 +57,7 @@ export default function AgentCard({ agent }: AgentCardProps) {
                 </Badge>
               )}
           </div>
-          <p className="text-sm text-muted-foreground">Real Estate Professional</p>
+          <p className="text-sm text-muted-foreground">Real Estate Agent</p>
         </CardHeader>
         <CardContent className="p-4 flex-grow space-y-2">
           {agent.specialty && (

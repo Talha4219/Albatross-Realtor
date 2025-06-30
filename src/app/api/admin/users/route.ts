@@ -1,10 +1,12 @@
 
+
 import { NextResponse, type NextRequest } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import User from '@/models/User';
 import type { UserProfile } from '@/types';
 
 const ADMIN_ROLE = 'admin';
+const PAGE_SIZE = 10; // Number of users per page
 
 export async function GET(request: NextRequest) {
   const requestingUserRole = request.headers.get('x-user-role');
@@ -15,6 +17,9 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const searchQuery = searchParams.get('search');
+  const roleQuery = searchParams.get('role');
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const limit = parseInt(searchParams.get('limit') || String(PAGE_SIZE), 10);
 
   try {
     await dbConnect();
@@ -28,11 +33,22 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    const usersFromDb = await User.find(query).sort({ createdAt: -1 });
+    if (roleQuery) {
+      query.role = roleQuery;
+    }
+
+    const skip = (page - 1) * limit;
+
+    const totalUsers = await User.countDocuments(query);
+    const totalPages = Math.ceil(totalUsers / limit);
+
+    const usersFromDb = await User.find(query)
+                                  .sort({ createdAt: -1 })
+                                  .skip(skip)
+                                  .limit(limit);
 
     const users: UserProfile[] = usersFromDb.map(userDoc => {
       const userObject = userDoc.toObject();
-      // Ensure the object matches UserProfile structure
       return {
         id: userObject.id,
         name: userObject.name,
@@ -43,7 +59,16 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json({ success: true, data: users }, { status: 200 });
+    return NextResponse.json({ 
+      success: true, 
+      data: users,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalUsers,
+        pageSize: limit,
+      }
+    }, { status: 200 });
 
   } catch (error) {
     console.error("API Error fetching users:", error);

@@ -1,4 +1,5 @@
 
+
 import { NextResponse, type NextRequest } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Property from '@/models/Property';
@@ -24,7 +25,7 @@ const PropertyAPISchema = z.object({
   propertyType: z.enum(propertyTypes),
   status: z.enum(propertyStatuses), 
   yearBuilt: z.coerce.number().optional().nullable(),
-  images: z.array(z.string().url()).min(1),
+  images: z.array(z.string()).min(1),
   features: z.array(z.string()).optional(),
 }).refine(data => {
     if (data.propertyType === 'Plot' || data.propertyType === 'Land') {
@@ -40,36 +41,70 @@ const PropertyAPISchema = z.object({
 export async function GET(request: NextRequest) {
   const userRole = request.headers.get('x-user-role'); 
   const { searchParams } = new URL(request.url);
+  
+  // Admin/User specific filters
   const submittedById = searchParams.get('submittedById');
+  
+  // Search and filter parameters
+  const searchQuery = searchParams.get('search'); // Main text query
   const statusFilter = searchParams.get('status') as PropertyStatusEnum | null;
   const propertyTypeFilter = searchParams.get('propertyType') as PropertyTypeEnum | null;
-  const searchQuery = searchParams.get('search');
+  const minPrice = searchParams.get('minPrice');
+  const maxPrice = searchParams.get('maxPrice');
+  const beds = searchParams.get('beds'); // Minimum beds
+  const baths = searchParams.get('baths'); // Minimum baths
+  const minArea = searchParams.get('minArea');
+  const maxArea = searchParams.get('maxArea');
 
   try {
     await dbConnect();
     
     let query: any = {}; 
     
+    // Non-admins only see approved properties, unless they are the owner (which this route doesn't check, handled in [id] route)
+    if (userRole !== 'admin') {
+      query.approvalStatus = 'Approved';
+    }
+    
+    // For admin role, they can see all properties, but can filter by submitter
     if (userRole === 'admin') {
       if (submittedById && mongoose.Types.ObjectId.isValid(submittedById)) {
         query.submittedBy = new mongoose.Types.ObjectId(submittedById);
       }
-      if (statusFilter && propertyStatuses.includes(statusFilter)) {
-        query.status = statusFilter;
-      }
-      if (propertyTypeFilter && propertyTypes.includes(propertyTypeFilter)) {
+    }
+    
+    // Applying search filters
+    if (statusFilter && propertyStatuses.includes(statusFilter)) {
+        // Non-admins can only filter by 'For Sale' or 'For Rent' publicly
+        if(userRole !== 'admin' && !['For Sale', 'For Rent'].includes(statusFilter)) {
+            // ignore other status filters for non-admins
+        } else {
+             query.status = statusFilter;
+        }
+    }
+    
+    if (propertyTypeFilter && propertyTypes.includes(propertyTypeFilter)) {
         query.propertyType = propertyTypeFilter;
-      }
-    } else {
-      query.approvalStatus = 'Approved';
-      if (statusFilter && (statusFilter === 'For Sale' || statusFilter === 'For Rent')) {
-        query.status = statusFilter;
-      } else if (statusFilter) {
-        return NextResponse.json({ success: true, data: [] }, { status: 200 });
-      }
-       if (propertyTypeFilter && propertyTypes.includes(propertyTypeFilter)) {
-        query.propertyType = propertyTypeFilter;
-      }
+    }
+
+    if (minPrice || maxPrice) {
+        query.price = {};
+        if (minPrice) query.price.$gte = Number(minPrice);
+        if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+    
+    if (beds) {
+        query.bedrooms = { $gte: Number(beds) };
+    }
+
+    if (baths) {
+        query.bathrooms = { $gte: Number(baths) };
+    }
+
+    if (minArea || maxArea) {
+        query.areaSqFt = {};
+        if (minArea) query.areaSqFt.$gte = Number(minArea);
+        if (maxArea) query.areaSqFt.$lte = Number(maxArea);
     }
     
     if (searchQuery) {
@@ -79,7 +114,8 @@ export async function GET(request: NextRequest) {
         { city: { $regex: regex } },
         { state: { $regex: regex } },
         { zip: { $regex: regex } },
-        { description: { $regex: regex } }
+        { description: { $regex: regex } },
+        { propertyType: { $regex: regex } },
       ];
     }
 
@@ -128,8 +164,8 @@ export async function POST(request: NextRequest) {
     
     const newPropertyData: any = {
       ...propertyData,
-      images: propertyData.images.filter(img => img.trim() !== ''),
-      features: propertyData.features?.filter(feat => feat.trim() !== '') || [],
+      images: propertyData.images.filter(img => img?.trim() !== ''),
+      features: propertyData.features?.filter(feat => feat?.trim() !== '') || [],
       approvalStatus: 'Pending', 
       status: propertyData.status === 'Pending Approval' || !propertyData.status ? 'Pending Approval' : propertyData.status, 
       isVerified: false, 

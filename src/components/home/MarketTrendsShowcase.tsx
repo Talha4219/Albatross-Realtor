@@ -110,7 +110,7 @@ export default function MarketTrendsShowcase() {
             <Link href="/market-trends">Explore All Market Trends</Link>
           </Button>
           <div className="text-sm text-muted-foreground space-x-4">
-            <Link href="/agents/find" className="hover:text-primary hover:underline">Find an Agent for Expert Advice</Link>
+            <Link href="/agents" className="hover:text-primary hover:underline">Find an Agent for Expert Advice</Link>
             <span className="text-muted-foreground/50">|</span>
             <Link href="/financing/calculator" className="hover:text-primary hover:underline">Use Our Loan Calculator</Link>
           </div>

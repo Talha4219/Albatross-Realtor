@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -116,11 +117,11 @@ export default function BlogPreviewSection() {
             <Link href="/blog">Explore All Blog Posts</Link>
           </Button>
           <div className="text-sm text-muted-foreground space-x-2 sm:space-x-4">
-            <Link href="/#ai-chat" className="hover:text-primary hover:underline inline-flex items-center gap-1">
+            <Link href="#ai-chat" className="hover:text-primary hover:underline inline-flex items-center gap-1">
               <MessageSquare className="w-4 h-4" /> Ask Our AI for Tips
             </Link>
             <span className="text-muted-foreground/50">|</span>
-            <Link href="/agents/find" className="hover:text-primary hover:underline inline-flex items-center gap-1">
+            <Link href="/agents" className="hover:text-primary hover:underline inline-flex items-center gap-1">
               <Edit3 className="w-4 h-4" /> Connect with an Agent
             </Link>
           </div>

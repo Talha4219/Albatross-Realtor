@@ -24,8 +24,8 @@ const buyingSteps = [
     title: 'Find the Right Agent',
     description: 'A good real estate agent is your expert guide. They provide market knowledge, negotiation skills, and manage the paperwork.',
     icon: Users,
-    link: '#',
-    linkLabel: 'Find an Agent (Coming Soon)'
+    link: '/agents',
+    linkLabel: 'Find an Agent'
   },
   {
     step: 3,
@@ -106,4 +106,3 @@ export default function BuyingGuidesPage() {
     </div>
   );
 }
-// Note: A `Users` icon was intended for Step 2. Assuming it's in lucide-react, if not, it will need a replacement. Let's assume it exists or replace with `UserCheck` or similar. Since I can't check lucide-react library in real-time, I'll use `Users`.

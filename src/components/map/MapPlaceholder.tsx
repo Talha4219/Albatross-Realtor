@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { MapIcon } from 'lucide-react';
@@ -22,8 +23,8 @@ export default function MapPlaceholder({ height = '400px', className }: MapPlace
           />
           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/10 p-4">
             <MapIcon className="w-16 h-16 text-primary mb-4" />
-            <h3 className="text-xl font-semibold text-foreground text-center">Interactive Map Coming Soon</h3>
-            <p className="text-muted-foreground text-center mt-2">Visualize property locations and neighborhood boundaries here.</p>
+            <h3 className="text-xl font-semibold text-foreground text-center">Location Not Available</h3>
+            <p className="text-muted-foreground text-center mt-2">The exact coordinates for this property have not been provided, or the map service is unavailable.</p>
           </div>
         </div>
       </CardContent>

@@ -125,7 +125,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         return NextResponse.json({ success: true, message: 'Post deleted successfully' });
 
     } catch (error) {
-        console.error(`API Error deleting post ${params.id}:`, error);
+        console.error(`Error deleting post ${params.id}:`, error);
         return NextResponse.json({ success: false, error: 'Server error while deleting post.' }, { status: 500 });
     }
 }

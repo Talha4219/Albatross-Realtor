@@ -57,7 +57,7 @@ export default function PostListingPage() {
                     Ready to get started? Our easy-to-use form will guide you through the process of creating a beautiful and effective listing.
                 </p>
                 <Button asChild size="lg" className="font-headline text-lg">
-                    <Link href="/properties/new">
+                    <Link href="/add-listing">
                         List Your Property Now
                     </Link>
                 </Button>

@@ -13,31 +13,13 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, UserCircle, KeyRound, Upload } from 'lucide-react';
+import { Loader2, UserCircle, KeyRound } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 const profileFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
-  profilePictureFile: z
-    .any()
-    .optional()
-    .refine(
-      (files) => {
-        if (typeof window === 'undefined') return true; // Pass on server
-        if (!files || files.length === 0) return true; // Pass if no file
-        return files[0].size <= 2 * 1024 * 1024; // Check size on client
-      },
-      `Max file size is 2MB.`
-    )
-    .refine(
-      (files) => {
-        if (typeof window === 'undefined') return true; // Pass on server
-        if (!files || files.length === 0) return true; // Pass if no file
-        return ['image/jpeg', 'image/png', 'image/webp'].includes(files[0].type); // Check type on client
-      },
-      'Only .jpg, .png, and .webp formats are supported.'
-    ),
+  profilePictureUrl: z.string().optional(),
 });
 type ProfileFormData = z.infer<typeof profileFormSchema>;
 
@@ -71,7 +53,7 @@ export default function ProfilePage() {
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       name: user?.name || '',
-      profilePictureFile: undefined,
+      profilePictureUrl: user?.profilePictureUrl || undefined,
     },
   });
 
@@ -87,7 +69,7 @@ export default function ProfilePage() {
     if(user) {
         profileForm.reset({
             name: user.name,
-            profilePictureFile: undefined,
+            profilePictureUrl: user.profilePictureUrl || undefined,
         });
     }
   }, [user, profileForm]);
@@ -97,31 +79,13 @@ export default function ProfilePage() {
     if (!token) return;
     setIsProfileSubmitting(true);
     try {
-      const { name, profilePictureFile } = data;
-      let profilePictureUrl: string | undefined = user?.profilePictureUrl;
-
-      if (profilePictureFile && profilePictureFile.length > 0) {
-        const file = profilePictureFile[0];
-        profilePictureUrl = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-      }
-      
-      const updatePayload = {
-        name,
-        profilePictureUrl: profilePictureUrl || '',
-      };
-
       const response = await fetch('/api/profile', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(updatePayload),
+        body: JSON.stringify(data),
       });
 
       const result = await response.json();
@@ -165,6 +129,28 @@ export default function ProfilePage() {
     }
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ variant: 'destructive', title: 'File too large', description: 'Image must be smaller than 2MB.' });
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast({ variant: 'destructive', title: 'Invalid file type', description: 'Please select a JPG, PNG, or WEBP image.' });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setImagePreview(result);
+      profileForm.setValue('profilePictureUrl', result, { shouldValidate: true, shouldDirty: true });
+    };
+    reader.readAsDataURL(file);
+  };
+
 
   if (isAuthLoading || !user) {
     return (
@@ -206,36 +192,19 @@ export default function ProfilePage() {
                       <FormMessage />
                     </FormItem>
                   )} />
-                  <FormField
-                    control={profileForm.control}
-                    name="profilePictureFile"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Profile Picture</FormLabel>
-                        <FormControl>
-                            <Input
-                            type="file"
-                            accept="image/png, image/jpeg, image/webp"
-                            onChange={(e) => {
-                                const files = e.target.files;
-                                if (files && files.length > 0) {
-                                const file = files[0];
-                                const previewUrl = URL.createObjectURL(file);
-                                setImagePreview(previewUrl);
-                                field.onChange(files);
-                                } else {
-                                field.onChange(null);
-                                }
-                            }}
-                            />
-                        </FormControl>
-                        <FormDescription>
-                            Upload a new picture from your computer. Max 2MB.
-                        </FormDescription>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                  />
+                   <FormItem>
+                      <FormLabel>Upload New Profile Picture</FormLabel>
+                      <FormControl>
+                          <Input
+                          type="file"
+                          accept="image/png, image/jpeg, image/webp"
+                          onChange={handleFileChange}
+                          />
+                      </FormControl>
+                      <FormDescription>
+                          Max 2MB. JPG, PNG, or WEBP formats.
+                      </FormDescription>
+                  </FormItem>
                   <Button type="submit" disabled={isProfileSubmitting} className="w-full">
                     {isProfileSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Save Changes
@@ -274,4 +243,3 @@ export default function ProfilePage() {
     </div>
   );
 }
-

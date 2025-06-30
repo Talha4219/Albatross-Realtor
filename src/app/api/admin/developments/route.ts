@@ -4,8 +4,11 @@ import dbConnect from '@/lib/mongodb';
 import ProjectModel from '@/models/Project'; // Use the new Project model
 import { z } from 'zod';
 import type { Project as ProjectType } from '@/types';
+import mongoose from 'mongoose';
+
 
 const ADMIN_ROLE = 'admin';
+const AGENT_ROLE = 'agent';
 
 // Zod schema for creating a new project/development
 const CreateProjectSchema = z.object({
@@ -56,8 +59,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const requestingUserRole = request.headers.get('x-user-role');
-  if (requestingUserRole !== ADMIN_ROLE) {
-    return NextResponse.json({ success: false, error: 'Forbidden: Admin access required' }, { status: 403 });
+  const requestingUserId = request.headers.get('x-user-id');
+
+  if (requestingUserRole !== ADMIN_ROLE && requestingUserRole !== AGENT_ROLE) {
+    return NextResponse.json({ success: false, error: 'Forbidden: Admin or Agent access required' }, { status: 403 });
+  }
+
+  if (!requestingUserId || !mongoose.Types.ObjectId.isValid(requestingUserId)) {
+      return NextResponse.json({ success: false, error: 'Invalid or missing user ID' }, { status: 401 });
   }
 
   try {
@@ -69,7 +78,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid input data.', details: validation.error.flatten() }, { status: 400 });
     }
 
-    const projectData = validation.data;
+    const projectData = {
+        ...validation.data,
+        submittedBy: new mongoose.Types.ObjectId(requestingUserId)
+    };
+
     const newProject = await ProjectModel.create(projectData);
     
     return NextResponse.json({ success: true, data: newProject.toObject() }, { status: 201 });

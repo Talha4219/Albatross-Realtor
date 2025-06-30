@@ -249,7 +249,7 @@ export default function AdminPropertiesPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/properties/new"><PlusCircle className="mr-2 h-4 w-4" /> Add New Property</Link>
+          <Link href="/add-listing"><PlusCircle className="mr-2 h-4 w-4" /> Add New Listing</Link>
         </Button>
       </div>
 

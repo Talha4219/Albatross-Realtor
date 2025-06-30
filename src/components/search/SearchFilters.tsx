@@ -1,51 +1,58 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { SearchIcon, HomeIcon, BedIcon, BathIcon, DollarSignIcon, ScanSearch } from 'lucide-react';
+import { SearchIcon, ScanSearch } from 'lucide-react';
 import type { PropertyTypeEnum } from '@/types';
 
+export interface SearchFilterValues {
+  q: string;
+  propertyType: string;
+  status: string;
+  minPrice: string;
+  maxPrice: string;
+  beds: string;
+  baths: string;
+}
+
 interface SearchFiltersProps {
-  onSearch: (filters: any) => void; // Define a proper filter type later
+  onSearch: (filters: SearchFilterValues) => void;
+  initialFilters?: Partial<SearchFilterValues>;
+  isLoading?: boolean;
 }
 
 const propertyTypes: PropertyTypeEnum[] = ['House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot'];
 const bedOptions = [1, 2, 3, 4, 5];
-const bathOptions = [1, 1.5, 2, 2.5, 3, 4];
+const bathOptions = [1, 2, 3, 4];
 
-export default function SearchFilters({ onSearch }: SearchFiltersProps) {
-  const [location, setLocation] = useState('');
-  const [priceRange, setPriceRange] = useState<[number, number]>([50000, 5000000]);
-  const [propertyType, setPropertyType] = useState<PropertyTypeEnum | ''>('');
-  const [beds, setBeds] = useState<number | ''>('');
-  const [baths, setBaths] = useState<number | ''>('');
-  const [minArea, setMinArea] = useState<string>('');
-  const [maxArea, setMaxArea] = useState<string>('');
-  const [isFurnished, setIsFurnished] = useState(false);
-  const [hasPool, setHasPool] = useState(false);
+export default function SearchFilters({ onSearch, initialFilters, isLoading }: SearchFiltersProps) {
+  const [filters, setFilters] = useState<SearchFilterValues>({
+    q: '',
+    propertyType: '',
+    status: '',
+    minPrice: '',
+    maxPrice: '',
+    beds: '',
+    baths: '',
+    ...initialFilters,
+  });
 
+  useEffect(() => {
+    setFilters(prev => ({ ...prev, ...initialFilters }));
+  }, [initialFilters]);
+
+  const handleInputChange = (key: keyof SearchFilterValues, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch({
-      location,
-      minPrice: priceRange[0],
-      maxPrice: priceRange[1],
-      propertyType,
-      beds,
-      baths,
-      minArea: minArea ? parseInt(minArea) : undefined,
-      maxArea: maxArea ? parseInt(maxArea) : undefined,
-      isFurnished,
-      hasPool,
-    });
+    onSearch(filters);
   };
 
   return (
@@ -53,111 +60,75 @@ export default function SearchFilters({ onSearch }: SearchFiltersProps) {
       <CardHeader>
         <CardTitle className="text-2xl font-headline flex items-center gap-2">
           <ScanSearch className="w-7 h-7 text-primary" />
-          Find Your Dream Property
+          Filter Properties
         </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-4">
-          <div className="lg:col-span-4">
-            <Label htmlFor="location" className="font-medium mb-1 block">Location</Label>
+          <div className="lg:col-span-2">
+            <Label htmlFor="q">Location / Keyword</Label>
             <Input
-              id="location"
-              type="text"
+              id="q"
               placeholder="City, State, Zip, or Address"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="text-base"
+              value={filters.q}
+              onChange={(e) => handleInputChange('q', e.target.value)}
             />
           </div>
-
-          <div className="lg:col-span-4">
-            <Label className="font-medium mb-2 block">Price Range</Label>
-            <div className="flex justify-between text-sm text-muted-foreground mb-2">
-              <span>Rs {priceRange[0].toLocaleString()}</span>
-              <span>Rs {priceRange[1].toLocaleString()}</span>
-            </div>
-            <Slider
-              min={0}
-              max={5000000}
-              step={10000}
-              value={[priceRange[0], priceRange[1]]}
-              onValueChange={(value) => setPriceRange(value as [number, number])}
-              className="my-2"
-            />
-          </div>
-          
           <div>
-            <Label htmlFor="propertyType" className="font-medium mb-1 block">Property Type</Label>
-            <Select value={propertyType} onValueChange={(value) => setPropertyType(value as PropertyTypeEnum)}>
-              <SelectTrigger id="propertyType" className="w-full">
-                <SelectValue placeholder="Any Type" />
-              </SelectTrigger>
+            <Label htmlFor="status">Listing Status</Label>
+            <Select value={filters.status} onValueChange={(value) => handleInputChange('status', value)}>
+              <SelectTrigger id="status"><SelectValue placeholder="For Sale / Rent" /></SelectTrigger>
               <SelectContent>
-                {propertyTypes.map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
+                <SelectItem value="">Any Status</SelectItem>
+                <SelectItem value="For Sale">For Sale</SelectItem>
+                <SelectItem value="For Rent">For Rent</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
           <div>
-            <Label htmlFor="beds" className="font-medium mb-1 block">Beds</Label>
-            <Select value={beds === '' ? '' : String(beds)} onValueChange={(value) => setBeds(value === '' ? '' : Number(value))}>
-              <SelectTrigger id="beds" className="w-full">
-                <SelectValue placeholder="Any Beds" />
-              </SelectTrigger>
+            <Label htmlFor="propertyType">Property Type</Label>
+            <Select value={filters.propertyType} onValueChange={(value) => handleInputChange('propertyType', value)}>
+              <SelectTrigger id="propertyType"><SelectValue placeholder="Any Type" /></SelectTrigger>
               <SelectContent>
-                {bedOptions.map(option => (
-                  <SelectItem key={option} value={String(option)}>{option}{option === 5 ? '+' : ''} Beds</SelectItem>
-                ))}
+                <SelectItem value="">Any Type</SelectItem>
+                {propertyTypes.map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
-
           <div>
-            <Label htmlFor="baths" className="font-medium mb-1 block">Baths</Label>
-            <Select value={baths === '' ? '' : String(baths)} onValueChange={(value) => setBaths(value === '' ? '' : Number(value))}>
-              <SelectTrigger id="baths" className="w-full">
-                <SelectValue placeholder="Any Baths" />
-              </SelectTrigger>
+            <Label htmlFor="beds">Min. Beds</Label>
+            <Select value={filters.beds} onValueChange={(value) => handleInputChange('beds', value)}>
+              <SelectTrigger id="beds"><SelectValue placeholder="Any Beds" /></SelectTrigger>
               <SelectContent>
-                {bathOptions.map(option => (
-                  <SelectItem key={option} value={String(option)}>{option}{option === 4 ? '+' : ''} Baths</SelectItem>
-                ))}
+                <SelectItem value="">Any</SelectItem>
+                {bedOptions.map(o => <SelectItem key={o} value={String(o)}>{o}{o === 5 ? '+' : ''}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
-
-          <div className="flex items-end space-x-2">
+          <div>
+            <Label htmlFor="baths">Min. Baths</Label>
+            <Select value={filters.baths} onValueChange={(value) => handleInputChange('baths', value)}>
+              <SelectTrigger id="baths"><SelectValue placeholder="Any Baths" /></SelectTrigger>
+              <SelectContent>
+                 <SelectItem value="">Any</SelectItem>
+                {bathOptions.map(o => <SelectItem key={o} value={String(o)}>{o}{o === 4 ? '+' : ''}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="lg:col-span-2 grid grid-cols-2 gap-2">
             <div>
-              <Label htmlFor="minArea" className="font-medium mb-1 block">Min Area (sqft)</Label>
-              <Input id="minArea" type="number" placeholder="e.g. 1000" value={minArea} onChange={e => setMinArea(e.target.value)} />
+                <Label htmlFor="minPrice">Min. Price (Rs)</Label>
+                <Input id="minPrice" type="number" placeholder="No Min" value={filters.minPrice} onChange={(e) => handleInputChange('minPrice', e.target.value)} />
             </div>
-            <div>
-              <Label htmlFor="maxArea" className="font-medium mb-1 block">Max Area (sqft)</Label>
-              <Input id="maxArea" type="number" placeholder="e.g. 3000" value={maxArea} onChange={e => setMaxArea(e.target.value)} />
-            </div>
-          </div>
-          
-          <div className="lg:col-span-4 mt-4 space-y-3">
-            <Label className="font-medium block">Features</Label>
-            <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-2">
-                    <Checkbox id="furnished" checked={isFurnished} onCheckedChange={(checked) => setIsFurnished(checked as boolean)} />
-                    <Label htmlFor="furnished" className="font-normal text-sm">Furnished</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                    <Checkbox id="pool" checked={hasPool} onCheckedChange={(checked) => setHasPool(checked as boolean)} />
-                    <Label htmlFor="pool" className="font-normal text-sm">Pool</Label>
-                </div>
+             <div>
+                <Label htmlFor="maxPrice">Max. Price (Rs)</Label>
+                <Input id="maxPrice" type="number" placeholder="No Max" value={filters.maxPrice} onChange={(e) => handleInputChange('maxPrice', e.target.value)} />
             </div>
           </div>
-
-
           <div className="lg:col-span-4 flex justify-end mt-4">
-            <Button type="submit" size="lg" className="w-full lg:w-auto font-headline">
+            <Button type="submit" size="lg" className="w-full lg:w-auto font-headline" disabled={isLoading}>
               <SearchIcon className="mr-2 h-5 w-5" />
-              Search Properties
+              Search
             </Button>
           </div>
         </form>

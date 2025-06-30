@@ -27,7 +27,7 @@ const PropertyUpdateSchema = z.object({
   yearBuilt: z.coerce.number().optional().nullable().refine(val => val === null || val === undefined || (val >= 1800 && val <= new Date().getFullYear() + 5), {
     message: `Year built must be between 1800 and ${new Date().getFullYear() + 5} or empty.`
   }),
-  images: z.array(z.string().url().min(1)).min(1, "At least one image URL is required.").optional(),
+  images: z.array(z.string().min(1)).min(1, "At least one image is required.").optional(),
   features: z.array(z.string().min(1)).optional(),
   // approvalStatus can be updated via a separate route
 });

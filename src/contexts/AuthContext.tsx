@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -6,12 +7,14 @@ import { useRouter } from 'next/navigation';
 import type { UserRole } from '@/types';
 
 // Define a more detailed User type
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole; // Added role
   profilePictureUrl?: string;
+  phone?: string;
+  isEmailVerified?: boolean;
 }
 
 interface AuthContextType {
@@ -19,9 +22,10 @@ interface AuthContextType {
   token: string | null; 
   isLoading: boolean;
   login: (email: string, password: string) => Promise<User | null>;
-  signup: (name: string, email: string, password: string) => Promise<User | null>;
+  signup: (name: string, email: string, password: string, role: 'user' | 'agent', phone?: string) => Promise<any>;
   logout: () => void;
   updateUser: (updatedUserData: Partial<User>) => void;
+  loginWithToken: (token: string, userData: User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -64,17 +68,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       const result = await response.json();
       if (result.success && result.data && result.data.user && result.data.token) {
-        const userData = result.data.user as User; // Ensure role is included
-        localStorage.setItem(LOCAL_STORAGE_KEY_USER, JSON.stringify(userData));
-        localStorage.setItem(LOCAL_STORAGE_KEY_TOKEN, result.data.token); 
-        setUser(userData);
-        setToken(result.data.token); 
-        setIsLoading(false);
+        const userData = result.data.user as User;
+        loginWithToken(result.data.token, userData);
         return userData;
       } else {
         const errorMsg = result.error || (result.success === false ? "Unknown server error during login" : "Incomplete data from server during login");
-        const errorDetails = result.details ? JSON.stringify(result.details) : "No details provided.";
-        console.error(`Login failed: ${errorMsg}. Details: ${errorDetails}`);
+        console.error(`Login failed: ${errorMsg}`);
         setIsLoading(false);
         return null;
       }
@@ -85,35 +84,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signup = async (name: string, email: string, password: string): Promise<User | null> => {
+  const signup = async (name: string, email: string, password: string, role: 'user' | 'agent', phone?: string) => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, role, phone }),
       });
       const result = await response.json();
-      if (result.success && result.data && result.data.user && result.data.token) {
-        const userData = result.data.user as User; // Ensure role is included
-        localStorage.setItem(LOCAL_STORAGE_KEY_USER, JSON.stringify(userData));
-        localStorage.setItem(LOCAL_STORAGE_KEY_TOKEN, result.data.token); 
-        setUser(userData);
-        setToken(result.data.token); 
-        setIsLoading(false);
-        return userData;
-      } else {
-        const errorMsg = result.error || (result.success === false ? "Unknown server error during signup" : "Incomplete data from server during signup");
-        const errorDetails = result.details ? JSON.stringify(result.details) : "No details provided.";
-        console.error(`Signup failed: ${errorMsg}. Details: ${errorDetails}`);
-        setIsLoading(false);
-        return null;
+      // If signup returns user data and a token, log them in
+      if (result.success && result.data?.user && result.data?.token) {
+        loginWithToken(result.data.token, result.data.user);
       }
+      return result; // Return the full API response to the component
     } catch (error) {
       console.error("Signup API call failed:", error);
+      return { success: false, error: (error as Error).message };
+    } finally {
       setIsLoading(false);
-      return null;
     }
+  };
+  
+  const loginWithToken = (token: string, userData: User) => {
+    setIsLoading(true);
+    localStorage.setItem(LOCAL_STORAGE_KEY_USER, JSON.stringify(userData));
+    localStorage.setItem(LOCAL_STORAGE_KEY_TOKEN, token);
+    setUser(userData);
+    setToken(token);
+    setIsLoading(false);
   };
 
   const logout = () => {
@@ -133,7 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, signup, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, signup, logout, updateUser, loginWithToken }}>
       {children}
     </AuthContext.Provider>
   );

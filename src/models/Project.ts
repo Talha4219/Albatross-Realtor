@@ -1,14 +1,16 @@
 
 import mongoose, { Document, Schema, Model } from 'mongoose';
-import type { Project as ProjectType } from '@/types'; // Using existing Project type
+import './User'; // Ensure User model is registered for population
+import type { Project as ProjectType, UserProfile } from '@/types'; // Using existing Project type
 
 // Define a Mongoose schema based on the ProjectType
 // Note: 'id' is virtual or handled by toJSON/toObject, so we don't define it in schema explicitly.
-export interface IProject extends Omit<ProjectType, 'id'>, Document {
+export interface IProject extends Omit<ProjectType, 'id' | 'submittedBy'>, Document {
   // Mongoose will add _id automatically
+  submittedBy?: mongoose.Types.ObjectId;
 }
 
-const ProjectSchemaField: Record<keyof Omit<ProjectType, 'id' | 'createdAt' | 'updatedAt'>, any> = {
+const ProjectSchemaField: Record<keyof Omit<ProjectType, 'id' | 'createdAt' | 'updatedAt' | 'submittedBy'>, any> = {
   name: { type: String, required: true, trim: true },
   location: { type: String, required: true, trim: true },
   developer: { type: String, required: true, trim: true },
@@ -23,7 +25,10 @@ const ProjectSchemaField: Record<keyof Omit<ProjectType, 'id' | 'createdAt' | 'u
   learnMoreLink: { type: String, trim: true },
 };
 
-const ProjectSchema = new Schema<IProject>(ProjectSchemaField, {
+const ProjectSchema = new Schema<IProject>({
+    ...ProjectSchemaField,
+    submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+}, {
   timestamps: true, // Adds createdAt and updatedAt
   toJSON: {
     virtuals: true,

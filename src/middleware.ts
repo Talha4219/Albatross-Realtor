@@ -21,79 +21,66 @@ async function verifyToken(token: string): Promise<jose.JWTPayload | null> {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
-  // Public API routes that don't require JWT verification
-  const publicApiRoutes = [
-    '/api/auth/login',
-    '/api/auth/signup',
-  ];
-
-  if (publicApiRoutes.some(route => pathname.startsWith(route))) {
-    return NextResponse.next();
-  }
-
   const requestHeaders = new Headers(request.headers);
+
+  // --- Start: Token Verification and Header Injection ---
+  // This logic runs for all matched API routes.
   const authHeader = request.headers.get('authorization');
   let userId: string | null = null;
-  let userEmail: string | null = null;
   let userRole: string | null = null;
-  let userName: string | null = null;
 
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
     const decodedPayload = await verifyToken(token);
     if (decodedPayload && decodedPayload.userId && typeof decodedPayload.userId === 'string') {
       userId = decodedPayload.userId;
+      userRole = (decodedPayload.role as string) || null;
+      
       requestHeaders.set('x-user-id', userId);
       if (decodedPayload.email && typeof decodedPayload.email === 'string') {
-        userEmail = decodedPayload.email;
-        requestHeaders.set('x-user-email', userEmail);
+        requestHeaders.set('x-user-email', decodedPayload.email);
       }
       if (decodedPayload.name && typeof decodedPayload.name === 'string') {
-        userName = decodedPayload.name;
-        requestHeaders.set('x-user-name', userName);
+        requestHeaders.set('x-user-name', decodedPayload.name);
       }
-      if (decodedPayload.role && typeof decodedPayload.role === 'string') {
-        userRole = decodedPayload.role;
+      if (userRole) {
         requestHeaders.set('x-user-role', userRole);
       }
     }
   }
+  // --- End: Token Verification and Header Injection ---
+
+  // --- Start: Route Protection ---
+  // Now, check if the route requires authentication or specific roles.
   
-  // Public GET routes for viewing data
-  const isPublicGet = request.method === 'GET' && (
-    pathname.startsWith('/api/properties') ||
-    pathname.startsWith('/api/blog') || // Allow public GET for all blog content
-    pathname.startsWith('/api/projects') ||
-    pathname.startsWith('/api/testimonials')
-  );
-  if (isPublicGet) {
-    return NextResponse.next({ request: { headers: requestHeaders } });
+  // Routes requiring admin role
+  const adminRoutes = ['/api/admin/', '/api/properties/[id]/update-status'];
+  if (adminRoutes.some(route => pathname.startsWith(route.replace(/\[.*?\]/, '[^/]+')))) {
+    if (userRole !== 'admin') {
+      return new NextResponse(JSON.stringify({ success: false, error: 'Forbidden: Admin access required' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+    }
   }
 
-  // Protected API routes
-  const isAdminRoute = pathname.startsWith('/api/admin/');
-  const isPropertyMutation = pathname.startsWith('/api/properties') && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method);
-  const isBlogPostCreation = pathname === '/api/blog/posts' && request.method === 'POST';
-  const isMyPropertiesRoute = pathname.startsWith('/api/my-properties');
-  const isUpdateStatusRoute = pathname.startsWith('/api/properties/') && pathname.endsWith('/update-status') && request.method === 'PATCH';
+  // Routes requiring any authenticated user
+  const isPostProperty = pathname.startsWith('/api/properties') && ['POST', 'PUT', 'DELETE', 'PATCH'].includes(request.method) && !pathname.endsWith('/increment-view');
+  const isPostBlog = pathname === '/api/blog/posts' && request.method === 'POST';
+  const isMyProperties = pathname.startsWith('/api/my-properties');
+  const isProfileRoute = pathname.startsWith('/api/profile');
 
-  if (isAdminRoute || isPropertyMutation || isBlogPostCreation || isMyPropertiesRoute || isUpdateStatusRoute) {
+  if (isPostProperty || isPostBlog || isMyProperties || isProfileRoute) {
     if (!userId) {
-      return new NextResponse(JSON.stringify({ success: false, error: 'Authorization header missing, malformed, or token invalid/expired.' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
+      return new NextResponse(JSON.stringify({ success: false, error: 'Unauthorized or Invalid User ID' }), { status: 401, headers: { 'Content-Type': 'application/json' } });
     }
-
-    if (isAdminRoute || isUpdateStatusRoute) {
-      if (userRole !== 'admin') {
-        return new NextResponse(JSON.stringify({ success: false, error: 'Forbidden: Admin access required' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
-      }
-    }
-
-    return NextResponse.next({ request: { headers: requestHeaders } });
   }
+  // --- End: Route Protection ---
 
-  // For any other API routes not covered, default to allowing
-  return NextResponse.next();
+  // If we've reached here, the request is allowed to proceed.
+  // Pass the (potentially modified) headers to the next handler.
+  return NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
 }
 
 export const config = {

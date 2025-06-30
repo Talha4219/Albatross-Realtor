@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { UserCircle, ShieldCheck, Loader2, AlertTriangle, Users as UsersIcon, Edit3, Eye, RotateCcw } from 'lucide-react';
+import { UserCircle, ShieldCheck, Loader2, AlertTriangle, Users as UsersIcon, Edit3, Eye, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { UserProfile, UserRole } from '@/types'; 
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,9 +30,13 @@ export default function AdminUsersPage() {
   const { toast } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
+  
   const searchQuery = searchParams.get('search');
+  const currentPage = Number(searchParams.get('page')) || 1;
+  const [pagination, setPagination] = useState({ totalPages: 1, totalUsers: 0 });
 
-  const fetchUsers = async () => {
+
+  const fetchUsers = async (page = 1) => {
     if (!token) {
       setError("Admin authentication token not found.");
       setIsLoading(false);
@@ -41,10 +45,14 @@ export default function AdminUsersPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const url = searchQuery ? `/api/admin/users?search=${encodeURIComponent(searchQuery)}` : '/api/admin/users';
-      const res = await fetch(url, {
+      const url = new URL('/api/admin/users', window.location.origin);
+      if (searchQuery) url.searchParams.set('search', searchQuery);
+      url.searchParams.set('page', String(page));
+
+      const res = await fetch(url.toString(), {
         headers: { 'Authorization': `Bearer ${token}` },
       });
+
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({ error: `Error: ${res.status} ${res.statusText}` }));
         throw new Error(errorData.error || 'Failed to fetch users');
@@ -56,6 +64,7 @@ export default function AdminUsersPage() {
             role: u.role || 'user'
         }));
         setUsers(fetchedUsers);
+        setPagination(data.pagination);
       } else {
         throw new Error(data.error || 'API returned success:false but no error message');
       }
@@ -71,13 +80,20 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     if (token) {
-      fetchUsers();
+      fetchUsers(currentPage);
     } else if (!isAuthLoading && !token) {
       setError("Admin authentication required.");
       setIsLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, isAuthLoading, searchQuery]);
+  }, [token, isAuthLoading, searchQuery, currentPage]);
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage < 1 || newPage > pagination.totalPages) return;
+    const params = new URLSearchParams(searchParams);
+    params.set('page', String(newPage));
+    router.push(`/admin/users?${params.toString()}`);
+  };
 
   const handleRoleChange = async (userId: string, newRole: UserRole) => {
     if (!token) {
@@ -115,6 +131,35 @@ export default function AdminUsersPage() {
   const getUserStatus = (/* user: UserProfile */) => {
     return 'Active'; 
   };
+  
+  const renderPaginationControls = () => (
+    <div className="flex items-center justify-between pt-4">
+      <div className="text-sm text-muted-foreground">
+        Showing <strong>{(currentPage - 1) * 10 + 1}</strong> to <strong>{Math.min(currentPage * 10, pagination.totalUsers)}</strong> of <strong>{pagination.totalUsers}</strong> users.
+      </div>
+      <div className="flex items-center space-x-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handlePageChange(currentPage - 1)}
+          disabled={currentPage <= 1}
+        >
+          <ChevronLeft className="mr-2 h-4 w-4" />
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => handlePageChange(currentPage + 1)}
+          disabled={currentPage >= pagination.totalPages}
+        >
+          Next
+          <ChevronRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+
 
   if (isAuthLoading) {
     return (
@@ -149,7 +194,7 @@ export default function AdminUsersPage() {
           <CardHeader><CardTitle className="font-headline text-destructive flex items-center gap-2"><AlertTriangle className="w-6 h-6" />Error Loading Users</CardTitle></CardHeader>
           <CardContent>
             <p className="text-destructive-foreground break-all">{error}</p>
-            <Button onClick={fetchUsers} variant="outline" className="mt-4 border-destructive text-destructive-foreground hover:bg-destructive/30" disabled={isLoading}>
+            <Button onClick={() => fetchUsers(currentPage)} variant="outline" className="mt-4 border-destructive text-destructive-foreground hover:bg-destructive/30" disabled={isLoading}>
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null} Try Again
             </Button>
           </CardContent>
@@ -159,7 +204,7 @@ export default function AdminUsersPage() {
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>User Accounts</CardTitle>
-          <CardDescription>{isLoading ? 'Loading users...' : `Showing ${users.length} users.`}</CardDescription>
+          <CardDescription>{isLoading ? 'Loading users...' : `Total ${pagination.totalUsers} users found.`}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading && !error ? (
@@ -243,9 +288,12 @@ export default function AdminUsersPage() {
             </div>
           ) : null}
         </CardContent>
+        <CardContent>
+            {pagination.totalPages > 1 && renderPaginationControls()}
+        </CardContent>
       </Card>
       <p className="text-xs text-muted-foreground text-center pt-4">
-        User management with role assignment.
+        User management with role assignment and pagination.
       </p>
     </div>
   );

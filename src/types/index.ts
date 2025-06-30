@@ -1,8 +1,13 @@
 
+
 import type { Types } from 'mongoose';
 
 export type UserRole = 'user' | 'agent' | 'admin';
-export type PropertyTypeEnum = 'House' | 'Apartment' | 'Condo' | 'Townhouse' | 'Land' | 'Plot';
+export type PropertyTypeEnum = 
+  'House' | 'Apartment' | 'Condo' | 'Townhouse' | 'Land' | 'Plot' | 
+  'Flat' | 'Upper Portion' | 'Lower Portion' | 'Farm House' | 'Room' | 'Penthouse' |
+  'Residential Plot' | 'Commercial Plot' | 'Agricultural Land' | 'Industrial Land' | 'Plot File' | 'Plot Form' |
+  'Office' | 'Shop' | 'Warehouse' | 'Factory' | 'Building' | 'Other';
 export type PropertyStatusEnum = 'For Sale' | 'For Rent' | 'Sold' | 'Pending Approval' | 'Draft';
 export type PropertyApprovalStatusEnum = 'Pending' | 'Approved' | 'Rejected';
 export const blogCategories = ['Buying Guide', 'Selling Guide', 'Market Trends', 'General Guide', 'News'] as const;
@@ -15,9 +20,18 @@ export interface UserProfile {
   email: string;
   role: UserRole;
   profilePictureUrl?: string;
+  phone?: string;
+  isEmailVerified?: boolean;
   createdAt?: string; // ISO date string
   updatedAt?: string; // ISO date string
 }
+
+export interface Agent extends UserProfile {
+  specialty?: string;
+  rating?: number;
+  isVerified?: boolean;
+}
+
 
 export interface Property {
   id: string;
@@ -32,7 +46,7 @@ export interface Property {
   description: string;
   images: string[];
   propertyType: PropertyTypeEnum;
-  yearBuilt?: number;
+  yearBuilt?: number | null; // Allow null
   features?: string[];
   latitude?: number;
   longitude?: number;
@@ -40,7 +54,9 @@ export interface Property {
   postedDate: string; // ISO date string
   isVerified?: boolean;
   approvalStatus?: PropertyApprovalStatusEnum;
-  submittedBy?: string | Types.ObjectId | UserProfile; // Can be ID string or populated UserProfile
+  submittedBy?: UserProfile; 
+  agent?: Agent; // Agent specific details.
+  views?: number;
   createdAt?: string; // ISO date string
   updatedAt?: string; // ISO date string
 }
@@ -59,6 +75,7 @@ export interface Project {
   status?: 'Upcoming' | 'Trending' | 'Launched';
   timeline?: string;
   learnMoreLink?: string;
+  submittedBy?: UserProfile;
   createdAt?: string; // ISO date string
   updatedAt?: string; // ISO date string
 }

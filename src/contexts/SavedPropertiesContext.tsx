@@ -2,7 +2,6 @@
 
 import type { Property } from '@/types';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { mockProperties } from '@/lib/mock-data'; // Assuming mockProperties is the source
 
 interface SavedPropertiesContextType {
   savedPropertyIds: string[];
@@ -10,6 +9,7 @@ interface SavedPropertiesContextType {
   addSavedProperty: (propertyId: string) => void;
   removeSavedProperty: (propertyId: string) => void;
   isPropertySaved: (propertyId: string) => boolean;
+  isLoading: boolean;
 }
 
 const SavedPropertiesContext = createContext<SavedPropertiesContextType | undefined>(undefined);
@@ -26,14 +26,47 @@ export const SavedPropertiesProvider = ({ children }: { children: ReactNode }) =
   });
 
   const [savedProperties, setSavedProperties] = useState<Property[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const fetchSavedProperties = async () => {
+      if (savedPropertyIds.length === 0) {
+        setSavedProperties([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      setIsLoading(true);
+      try {
+        const propertiesData = await Promise.all(
+          savedPropertyIds.map(id => 
+            fetch(`/api/properties/${id}`).then(res => {
+              if (res.ok) return res.json();
+              // If a property is not found (404) or another error, return null
+              console.warn(`Could not fetch saved property with ID ${id}. It may have been removed.`);
+              return null; 
+            })
+          )
+        );
+        // Filter out nulls and only take successful property data
+        const validProperties = propertiesData
+          .filter(p => p && p.success)
+          .map(p => p.data);
+
+        setSavedProperties(validProperties);
+      } catch (error) {
+        console.error("Error fetching saved properties details:", error);
+        setSavedProperties([]); // Clear properties on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     if (typeof window !== 'undefined') {
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(savedPropertyIds));
-      // Filter full property objects based on saved IDs
-      const filteredProperties = mockProperties.filter(property => savedPropertyIds.includes(property.id));
-      setSavedProperties(filteredProperties);
+      fetchSavedProperties();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedPropertyIds]);
 
 
@@ -55,7 +88,7 @@ export const SavedPropertiesProvider = ({ children }: { children: ReactNode }) =
   };
 
   return (
-    <SavedPropertiesContext.Provider value={{ savedPropertyIds, savedProperties, addSavedProperty, removeSavedProperty, isPropertySaved }}>
+    <SavedPropertiesContext.Provider value={{ savedPropertyIds, savedProperties, addSavedProperty, removeSavedProperty, isPropertySaved, isLoading }}>
       {children}
     </SavedPropertiesContext.Provider>
   );

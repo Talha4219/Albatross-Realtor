@@ -1,4 +1,6 @@
+
 import mongoose, { Document, Schema, Model } from 'mongoose';
+import './User'; // Ensure User model is registered for population
 import type { BlogPost as BlogPostType, PropertyApprovalStatusEnum, BlogCategory } from '@/types';
 import { blogCategories } from '@/types';
 

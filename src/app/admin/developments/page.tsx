@@ -231,8 +231,10 @@ export default function AdminDevelopmentsPage() {
                     <Button variant="outline" size="sm" asChild>
                       <Link href={dev.learnMoreLink || `/new-projects#${dev.id}`} target="_blank"><Eye className="mr-1 h-3.5 w-3.5" /> View</Link>
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1" disabled> {/* Edit to be implemented later */}
-                      <Edit className="mr-1 h-3.5 w-3.5" /> Edit (Soon)
+                    <Button variant="outline" size="sm" asChild className="flex-1">
+                      <Link href={`/admin/developments/edit/${dev.id}`}>
+                        <Edit className="mr-1 h-3.5 w-3.5" /> Edit
+                      </Link>
                     </Button>
                     <Button variant="destructive" size="icon" onClick={() => setDevelopmentToDelete(dev)}>
                       <Trash2 className="h-4 w-4" />
@@ -245,9 +247,6 @@ export default function AdminDevelopmentsPage() {
           ) : null}
         </CardContent>
       </Card>
-       <p className="text-xs text-muted-foreground text-center pt-4">
-        Edit functionality for projects will be added later.
-      </p>
     </div>
   );
 }

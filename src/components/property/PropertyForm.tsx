@@ -1,8 +1,8 @@
 
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useSearchParams } from 'next/navigation';
@@ -11,14 +11,28 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { PropertyTypeEnum as PropertyTypeType, PropertyStatusEnum } from '@/types'; // Renamed to avoid conflict
+import { PropertyTypeEnum as PropertyTypeType, PropertyStatusEnum } from '@/types';
 import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
+import Image from 'next/image';
 
-const propertyTypes: PropertyTypeType[] = ['House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot'];
-// These are statuses a user can set when creating/editing. Admin might have more options for 'status' via other interfaces.
+const propertyTypes: PropertyTypeType[] = [
+    'House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot', 
+    'Flat', 'Upper Portion', 'Lower Portion', 'Farm House', 'Room', 'Penthouse',
+    'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form',
+    'Office', 'Shop', 'Warehouse', 'Factory', 'Building', 'Other'
+];
 const userSettablePropertyStatuses: PropertyStatusEnum[] = ['For Sale', 'For Rent', 'Draft']; 
 
+const areaUnits = ['Marla', 'Kanal', 'Sq. Ft.', 'Sq. M.', 'Sq. Yd.'] as const;
+type AreaUnit = typeof areaUnits[number];
+
+const conversionFactors: Record<AreaUnit, number> = {
+  'Marla': 272.25,
+  'Kanal': 5445, 
+  'Sq. Ft.': 1,
+  'Sq. M.': 10.7639,
+  'Sq. Yd.': 9,
+};
 
 const PropertyFormSchema = z.object({
   address: z.string().min(5, "Address must be at least 5 characters."),
@@ -31,14 +45,14 @@ const PropertyFormSchema = z.object({
   areaSqFt: z.coerce.number().positive("Area must be a positive number."),
   description: z.string().min(20, "Description must be at least 20 characters."),
   propertyType: z.enum(propertyTypes),
-  status: z.enum(userSettablePropertyStatuses), // Use user-settable statuses for the form
+  status: z.enum(userSettablePropertyStatuses), 
   yearBuilt: z.coerce.number().optional().nullable().refine(val => val === null || val === undefined || (val >= 1800 && val <= new Date().getFullYear() + 5), {
     message: `Year built must be between 1800 and ${new Date().getFullYear() + 5}. Leave empty if not applicable.`
   }),
-  images: z.array(z.string().url("Must be a valid URL.").min(1, "Image URL cannot be empty.")).min(1, "At least one image URL is required."),
+  images: z.array(z.string().min(1, "Image data cannot be empty.")).min(1, "At least one image is required."),
   features: z.array(z.string().min(1, "Feature cannot be empty.")).optional(),
 }).refine(data => {
-    if (data.propertyType === 'Plot' || data.propertyType === 'Land') {
+    if (['Plot', 'Land', 'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form'].includes(data.propertyType)) {
         return data.bedrooms === 0 && data.bathrooms === 0;
     }
     return true;
@@ -74,67 +88,76 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
       areaSqFt: 0,
       description: '',
       propertyType: defaultPropertyType || 'House',
-      status: 'For Sale', // Default to 'For Sale' for new submissions
+      status: 'For Sale',
       yearBuilt: null,
-      images: [''],
+      images: [],
       features: [''],
-      ...initialData, // Spread initialData here to override defaults if provided
+      ...initialData,
     },
   });
   
-  // Effect to reset form when initialData changes (e.g., when navigating between edit pages or data loads)
-  useEffect(() => {
-    if (initialData) {
-      // Filter out undefined values from initialData to prevent controlled/uncontrolled input issues
-      const filteredInitialData = Object.entries(initialData).reduce((acc, [key, value]) => {
-        if (value !== undefined) {
-          (acc as any)[key] = value;
-        }
-        return acc;
-      }, {} as Partial<PropertyFormData>);
-      
-      form.reset({
-        address: '', city: '', state: '', zip: '', price: 0, bedrooms: 0, bathrooms: 0, areaSqFt: 0,
-        description: '', propertyType: defaultPropertyType || 'House', status: 'For Sale', yearBuilt: null,
-        images: [''], features: [''],
-        ...filteredInitialData // Spread the potentially modified initialData
-      });
-      // Also update local state for dynamic fields if they are derived from initialData
-      setImageFields(initialData.images && initialData.images.length > 0 ? initialData.images : ['']);
-      setFeatureFields(initialData.features && initialData.features.length > 0 ? initialData.features : ['']);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData, form.reset, defaultPropertyType]);
-
-
-  const [imageFields, setImageFields] = useState<string[]>(initialData?.images && initialData.images.length > 0 ? initialData.images : ['']);
+  const [imagePreviews, setImagePreviews] = useState<string[]>(initialData?.images || []);
   const [featureFields, setFeatureFields] = useState<string[]>(initialData?.features && initialData.features.length > 0 ? initialData.features : ['']);
+  
+  const [areaMagnitude, setAreaMagnitude] = useState<number | string>('');
+  const [areaUnit, setAreaUnit] = useState<AreaUnit>('Marla');
+
   const currentPropertyType = form.watch('propertyType');
 
   useEffect(() => {
-    if (currentPropertyType === 'Plot' || currentPropertyType === 'Land') {
+    const magnitude = parseFloat(String(areaMagnitude));
+    if (!isNaN(magnitude) && magnitude > 0) {
+      const sqFt = magnitude * conversionFactors[areaUnit];
+      form.setValue('areaSqFt', sqFt, { shouldValidate: true });
+    } else {
+      form.setValue('areaSqFt', 0, { shouldValidate: true });
+    }
+  }, [areaMagnitude, areaUnit, form]);
+
+
+  useEffect(() => {
+    const initialType = initialData?.propertyType || defaultPropertyType || 'House';
+    const valuesToReset = {
+        ...form.getValues(),
+        address: '',
+        city: '',
+        state: '',
+        zip: '',
+        price: 0,
+        bedrooms: 0,
+        bathrooms: 0,
+        areaSqFt: 0,
+        description: '',
+        propertyType: initialType,
+        status: 'For Sale',
+        yearBuilt: null,
+        images: [],
+        features: [''],
+        ...initialData,
+    };
+    form.reset(valuesToReset);
+    setImagePreviews(initialData?.images || []);
+    setFeatureFields(initialData?.features && initialData.features.length > 0 ? initialData.features : ['']);
+
+    if (initialData?.areaSqFt) {
+        setAreaUnit('Sq. Ft.');
+        setAreaMagnitude(initialData.areaSqFt);
+    } else {
+        setAreaUnit('Marla');
+        setAreaMagnitude('');
+    }
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData, defaultPropertyType]);
+
+
+  useEffect(() => {
+    const plotTypes: PropertyTypeType[] = ['Plot', 'Land', 'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form'];
+    if (plotTypes.includes(currentPropertyType)) {
       form.setValue('bedrooms', 0);
       form.setValue('bathrooms', 0);
     }
   }, [currentPropertyType, form]);
-
-
-  const addImageField = () => {
-    const newImages = [...imageFields, ''];
-    setImageFields(newImages);
-    form.setValue('images', newImages.filter(img => img?.trim() !== ''));
-  };
-  const removeImageField = (index: number) => {
-    const newImages = imageFields.filter((_, i) => i !== index);
-    setImageFields(newImages.length > 0 ? newImages : ['']); 
-    form.setValue('images', newImages.filter(img => img?.trim() !== ''));
-  };
-  const handleImageChange = (index: number, value: string) => {
-    const newImages = [...imageFields];
-    newImages[index] = value;
-    setImageFields(newImages);
-    form.setValue('images', newImages.filter(img => img?.trim() !== ''));
-  };
 
   const addFeatureField = () => {
     const newFeatures = [...featureFields, ''];
@@ -153,11 +176,37 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
     form.setValue('features', newFeatures.filter(feat => feat?.trim() !== ''));
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files) return;
+
+    const currentFiles = form.getValues('images') || [];
+    const newFilePromises = Array.from(files).map(file => {
+        return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    });
+
+    Promise.all(newFilePromises).then(newBase64Files => {
+        const updatedFiles = [...currentFiles, ...newBase64Files];
+        setImagePreviews(updatedFiles);
+        form.setValue('images', updatedFiles, { shouldValidate: true });
+    });
+  };
+
+  const removeImage = (index: number) => {
+      const updatedImages = [...imagePreviews];
+      updatedImages.splice(index, 1);
+      setImagePreviews(updatedImages);
+      form.setValue('images', updatedImages, { shouldValidate: true });
+  }
 
   const processSubmit: SubmitHandler<PropertyFormData> = (data) => {
     const processedData = {
       ...data,
-      images: data.images.filter(img => img?.trim() !== ''),
       features: data.features?.filter(feat => feat?.trim() !== '') || [],
       yearBuilt: data.yearBuilt ? Number(data.yearBuilt) : null,
     };
@@ -165,8 +214,7 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
   };
 
   const submitButtonText = formType === 'edit' ? 'Update Property' : 'Submit Property for Approval';
-
-  const isPlotOrLand = currentPropertyType === 'Plot' || currentPropertyType === 'Land';
+  const isPlotOrLand = ['Plot', 'Land', 'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form'].includes(currentPropertyType);
 
   return (
     <Form {...form}>
@@ -227,17 +275,36 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="areaSqFt"
-            render={({ field }) => (
+          
+          <div className="grid grid-cols-2 gap-4">
               <FormItem>
-                <FormLabel>Area (sq ft)</FormLabel>
-                <FormControl><Input type="number" placeholder="e.g., 1800" {...field} /></FormControl>
-                <FormMessage />
+                  <FormLabel>Area</FormLabel>
+                  <FormControl>
+                      <Input 
+                          type="number" 
+                          placeholder="e.g., 5" 
+                          value={areaMagnitude}
+                          onChange={(e) => setAreaMagnitude(e.target.value)}
+                      />
+                  </FormControl>
               </FormItem>
-            )}
-          />
+              <FormItem>
+                  <FormLabel>Unit</FormLabel>
+                  <Select value={areaUnit} onValueChange={(value: AreaUnit) => setAreaUnit(value)}>
+                      <FormControl>
+                          <SelectTrigger>
+                              <SelectValue placeholder="Select unit" />
+                          </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                          {areaUnits.map(unit => (
+                              <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                          ))}
+                      </SelectContent>
+                  </Select>
+              </FormItem>
+          </div>
+
           {!isPlotOrLand && (
               <>
                 <FormField
@@ -285,6 +352,21 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
               </>
           )}
         </div>
+        
+        <FormField
+            control={form.control}
+            name="areaSqFt"
+            render={({ field }) => (
+                <FormItem className="hidden">
+                    <FormLabel>Area in Square Feet (calculated)</FormLabel>
+                    <FormControl>
+                        <Input type="number" {...field} readOnly />
+                    </FormControl>
+                    <FormMessage />
+                </FormItem>
+            )}
+        />
+
 
         <FormField
           control={form.control}
@@ -306,7 +388,7 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
                 <FormItem>
                 <FormLabel>Property Type</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value} defaultValue={initialData?.propertyType || defaultPropertyType || 'House'}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="Select property type" /></SelectTrigger></FormControl>
+                    <FormControl><SelectTrigger disabled><SelectValue placeholder="Select property type" /></SelectTrigger></FormControl>
                     <SelectContent>
                     {propertyTypes.map(type => (
                         <SelectItem key={type} value={type}>{type}</SelectItem>
@@ -317,55 +399,72 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
                 </FormItem>
             )}
             />
-            <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-                <FormItem>
-                <FormLabel>Listing Status</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value} defaultValue={initialData?.status || 'For Sale'}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="Select listing status" /></SelectTrigger></FormControl>
-                    <SelectContent>
-                    {userSettablePropertyStatuses.map(status => ( // Use userSettablePropertyStatuses
-                        <SelectItem key={status} value={status}>{status}</SelectItem>
-                    ))}
-                    </SelectContent>
-                </Select>
-                <FormMessage />
-                </FormItem>
+            {formType === 'edit' && (
+                <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Listing Status</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} defaultValue={initialData?.status || 'For Sale'}>
+                        <FormControl><SelectTrigger><SelectValue placeholder="Select listing status" /></SelectTrigger></FormControl>
+                        <SelectContent>
+                        {userSettablePropertyStatuses.map(status => (
+                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                        ))}
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
             )}
-            />
         </div>
 
         <FormField
-          control={form.control}
-          name="images"
-          render={() => ( 
-            <FormItem>
-              <FormLabel>Image URLs (at least one required)</FormLabel>
-              {imageFields.map((imageUrl, index) => (
-                <div key={index} className="flex items-center gap-2">
-                  <FormControl>
+            control={form.control}
+            name="images"
+            render={({ field }) => (
+                <FormItem>
+                <FormLabel>Property Images</FormLabel>
+                <FormControl>
                     <Input
-                      placeholder={`Image URL ${index + 1} (e.g., https://placehold.co/600x400.png)`}
-                      value={imageUrl || ''} // Ensure value is not null for input
-                      onChange={(e) => handleImageChange(index, e.target.value)}
+                    type="file"
+                    multiple
+                    accept="image/png, image/jpeg, image/webp"
+                    onChange={handleFileChange}
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20"
                     />
-                  </FormControl>
-                  {imageFields.length > 1 && (
-                    <Button type="button" variant="destructive" size="icon" onClick={() => removeImageField(index)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-              <Button type="button" variant="outline" size="sm" onClick={addImageField}>
-                <PlusCircle className="mr-2 h-4 w-4" /> Add Image URL
-              </Button>
-              <FormMessage>{form.formState.errors.images?.message || form.formState.errors.images?.[0]?.message}</FormMessage>
-            </FormItem>
-          )}
+                </FormControl>
+                <FormMessage />
+                {imagePreviews.length > 0 && (
+                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {imagePreviews.map((src, index) => (
+                        <div key={index} className="relative group">
+                        <Image
+                            src={src}
+                            alt={`Preview ${index + 1}`}
+                            width={150}
+                            height={150}
+                            className="rounded-md object-cover aspect-square w-full h-full"
+                        />
+                         <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon"
+                            className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => removeImage(index)}
+                        >
+                            <Trash2 className="h-3 w-3" />
+                        </Button>
+                        </div>
+                    ))}
+                    </div>
+                )}
+                </FormItem>
+            )}
         />
+
 
         <FormField
           control={form.control}
@@ -378,7 +477,7 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
                   <FormControl>
                     <Input
                       placeholder={`Feature ${index + 1} (e.g., Gated Community)`}
-                      value={feature || ''} // Ensure value is not null for input
+                      value={feature || ''}
                       onChange={(e) => handleFeatureChange(index, e.target.value)}
                     />
                   </FormControl>

@@ -83,7 +83,7 @@ export default function EditPropertyPage() {
         if (user?.role === 'admin') {
             router.push('/admin/properties');
         } else {
-            router.push('/my-properties'); // Or to the property detail page
+            router.push('/my-properties'); 
         }
       } else {
         throw new Error(result.error || "Failed to update property.");
@@ -128,17 +128,15 @@ export default function EditPropertyPage() {
     );
   }
 
-  // Map PropertyType to PropertyFormData
   const initialFormData: Partial<PropertyFormData> = {
     ...property,
-    price: property.price ?? 0, // Ensure price is number
+    price: property.price ?? 0,
     bedrooms: property.bedrooms ?? 0,
     bathrooms: property.bathrooms ?? 0,
     areaSqFt: property.areaSqFt ?? 0,
     yearBuilt: property.yearBuilt ?? null,
     images: property.images && property.images.length > 0 ? property.images : [''],
     features: property.features && property.features.length > 0 ? property.features : [''],
-    agentId: property.agent?.id ?? null, // Assuming agent has an id
   };
 
 

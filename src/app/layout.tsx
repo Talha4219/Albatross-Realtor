@@ -38,7 +38,7 @@ export default function RootLayout({
           <AuthProvider> 
             <SavedPropertiesProvider>
               <Header />
-              <main className="flex-grow container mx-auto px-4 py-8">
+              <main className="flex-grow container mx-auto px-4 py-8 animate-in fade-in-50 duration-500">
                 {children}
               </main>
               <Footer />

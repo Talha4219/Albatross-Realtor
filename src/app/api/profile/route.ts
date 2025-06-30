@@ -7,7 +7,7 @@ import { z } from 'zod';
 
 const UpdateProfileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters.").optional(),
-  profilePictureUrl: z.string().url("Must be a valid URL.").or(z.literal('')).optional(),
+  profilePictureUrl: z.string().optional(), // Allow any string (including data URIs)
 });
 
 // GET current user's profile

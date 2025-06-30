@@ -38,7 +38,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <AdminSidebar />
         <div className="flex flex-1 flex-col">
           <AdminHeader />
-          <main className="flex-1 overflow-y-auto p-6">
+          <main className="flex-1 overflow-y-auto p-6 animate-in fade-in-25 duration-300">
             {children}
           </main>
         </div>
