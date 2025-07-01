@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
@@ -8,7 +7,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { format } from "date-fns";
+import { AreaChart, BarChartBig } from "lucide-react";
 
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -23,10 +22,12 @@ const chartConfig = {
   desktop: {
     label: "Desktop",
     color: "hsl(var(--chart-1))",
+    icon: BarChartBig,
   },
   mobile: {
     label: "Mobile",
     color: "hsl(var(--chart-2))",
+    icon: AreaChart,
   },
 } satisfies ChartConfig;
 
