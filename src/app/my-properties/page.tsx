@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { format } from 'date-fns';
 
-export default function MyPropertiesPage() {
+
+function MyPropertiesPageContent() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -205,4 +206,12 @@ export default function MyPropertiesPage() {
       </Card>
     </div>
   );
+}
+
+export default function MyPropertiesPage() {
+  return (
+    <Suspense fallback={<div className="flex h-[50vh] w-full items-center justify-center"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}>
+      <MyPropertiesPageContent />
+    </Suspense>
+  )
 }
