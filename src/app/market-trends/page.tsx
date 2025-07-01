@@ -9,6 +9,7 @@ import BlogPostCard from '@/components/blog/BlogPostCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import MarketTrendsChart from '@/components/trends/MarketTrendsChart'; // Import the new chart
 
 export default function MarketTrendsPage() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -68,13 +69,7 @@ export default function MarketTrendsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8">
-          <div className="text-center py-12 bg-secondary/30 rounded-lg">
-            <BarChartBig className="w-24 h-24 mx-auto text-primary mb-6 opacity-50" />
-            <h2 className="text-2xl font-semibold text-foreground mb-2">Advanced Charts Coming Soon</h2>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              We&apos;re working on bringing you detailed charts and visualizations for market trends.
-            </p>
-          </div>
+           <MarketTrendsChart />
         </CardContent>
       </Card>
       

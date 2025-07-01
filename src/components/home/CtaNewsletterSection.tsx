@@ -6,15 +6,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Search, Users, Calculator, MessageSquare, ShieldCheck } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CtaNewsletterSection() {
+  const { toast } = useToast();
+
   const handleNewsletterSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Placeholder for newsletter submission logic
     const emailInput = e.currentTarget.elements.namedItem('email') as HTMLInputElement;
     if (emailInput) {
-      console.log('Newsletter subscription for:', emailInput.value);
-      alert(`Thank you for subscribing with ${emailInput.value}! (Placeholder)`);
+      toast({
+        title: "Subscribed!",
+        description: `Thank you for subscribing with ${emailInput.value}!`,
+      });
       emailInput.value = '';
     }
   };
@@ -35,15 +39,14 @@ export default function CtaNewsletterSection() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-10">
-            {/* Primary CTAs */}
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
               <Button size="lg" asChild className="font-headline w-full sm:w-auto">
-                <Link href="#property-search-section">
+                <Link href="/properties/for-sale">
                   <Search className="mr-2" /> Search Properties
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild className="font-headline w-full sm:w-auto">
-                <Link href="/agents/find">
+                <Link href="/agents">
                   <Users className="mr-2" /> Find an Agent
                 </Link>
               </Button>
@@ -54,7 +57,6 @@ export default function CtaNewsletterSection() {
               </Button>
             </div>
 
-            {/* Newsletter Signup Form */}
             <div className="max-w-xl mx-auto text-center">
               <h3 className="text-xl font-semibold text-foreground mb-3">Stay Updated</h3>
               <p className="text-muted-foreground mb-4">
@@ -78,21 +80,13 @@ export default function CtaNewsletterSection() {
                 Your privacy is protected. We never spam.
               </p>
             </div>
-
-            {/* Trust Elements Placeholder */}
-            <div className="text-center text-sm text-muted-foreground italic">
-              <p>[Trust Elements: Join 50K+ Subscribers | Secure Data - Placeholder]</p>
-            </div>
             
-            {/* Secondary CTA Placeholder */}
              <div className="text-center">
               <Button variant="link" asChild>
-                <Link href="/resources">Explore More Tools & Guides</Link>
+                <Link href="/guides">Explore More Tools & Guides</Link>
               </Button>
             </div>
 
-
-            {/* AI Chat Integration Placeholder */}
             <p className="text-center text-xs text-muted-foreground italic mt-6">
               <MessageSquare className="w-3.5 h-3.5 inline-block mr-1" />
               Questions about properties or financing? Ask our AI! (Bottom Right) &rarr;

@@ -4,7 +4,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, Zap, Users, MessageSquare, ShieldCheck } from 'lucide-react'; // Added ShieldCheck
+import { CheckCircle, Zap, Users, MessageSquare, ShieldCheck } from 'lucide-react'; 
 import Link from 'next/link';
 
 interface Benefit {
@@ -15,7 +15,7 @@ interface Benefit {
 
 const benefits: Benefit[] = [
   {
-    icon: ShieldCheck, // Changed from CheckCircle for thematic consistency
+    icon: ShieldCheck,
     title: '100% Verified Listings',
     description: 'Every property and agent is vetted to ensure your peace of mind and secure transactions.',
   },
@@ -58,19 +58,16 @@ export default function WhyChooseUsSection() {
           ))}
         </div>
         
-        {/* Trust Elements Placeholder */}
         <div className="text-center text-sm text-muted-foreground italic mb-8">
-          <p>[Trust Statement: Trusted by 100K+ Users | Secure Data - Placeholder]</p>
-          <p>[Metrics/Badges: 4.9/5 TrustScore | 500K+ Verified Listings - Placeholder]</p>
+          <p>Trusted by over 100,000 users for secure and reliable real estate transactions.</p>
         </div>
 
-        {/* Secondary CTA & AI Chat Prompt Placeholder */}
         <div className="text-center space-y-4">
           <Button size="lg" variant="default" asChild className="font-headline">
-            <Link href="#property-search-section">Get Started Now</Link>
+            <Link href="/add-listing">Get Started Now</Link>
           </Button>
           <div className="text-sm text-muted-foreground space-x-2 sm:space-x-4">
-            <Link href="/resources" className="hover:text-primary hover:underline">Explore Our Tools</Link>
+            <Link href="/guides" className="hover:text-primary hover:underline">Explore Our Guides</Link>
             <span className="text-muted-foreground/50">|</span>
             <Link href="/contact" className="hover:text-primary hover:underline">Contact Support</Link>
           </div>

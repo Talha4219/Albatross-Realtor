@@ -103,6 +103,8 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
   const [areaUnit, setAreaUnit] = useState<AreaUnit>('Marla');
 
   const currentPropertyType = form.watch('propertyType');
+  const plotTypes: PropertyTypeType[] = ['Plot', 'Land', 'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form'];
+  const isPlotOrLand = plotTypes.includes(currentPropertyType);
 
   useEffect(() => {
     const magnitude = parseFloat(String(areaMagnitude));
@@ -152,12 +154,11 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
 
 
   useEffect(() => {
-    const plotTypes: PropertyTypeType[] = ['Plot', 'Land', 'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form'];
-    if (plotTypes.includes(currentPropertyType)) {
+    if (isPlotOrLand) {
       form.setValue('bedrooms', 0);
       form.setValue('bathrooms', 0);
     }
-  }, [currentPropertyType, form]);
+  }, [currentPropertyType, form, isPlotOrLand]);
 
   const addFeatureField = () => {
     const newFeatures = [...featureFields, ''];
@@ -214,7 +215,6 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
   };
 
   const submitButtonText = formType === 'edit' ? 'Update Property' : 'Submit Property for Approval';
-  const isPlotOrLand = ['Plot', 'Land', 'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form'].includes(currentPropertyType);
 
   return (
     <Form {...form}>

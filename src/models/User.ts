@@ -11,6 +11,7 @@ export interface IUser extends Document {
   role: UserRole;
   profilePictureUrl?: string;
   phone?: string;
+  specialty?: string; // Added for agents
   isEmailVerified: boolean;
   passwordResetToken?: string;
   passwordResetTokenExpires?: Date;
@@ -48,6 +49,10 @@ const UserSchema = new Schema<IUser>({
     default: '',
   },
   phone: {
+    type: String,
+    trim: true,
+  },
+  specialty: { // Added for agents
     type: String,
     trim: true,
   },

@@ -21,13 +21,13 @@ export interface UserProfile {
   role: UserRole;
   profilePictureUrl?: string;
   phone?: string;
+  specialty?: string; // Added for agents
   isEmailVerified?: boolean;
   createdAt?: string; // ISO date string
   updatedAt?: string; // ISO date string
 }
 
 export interface Agent extends UserProfile {
-  specialty?: string;
   rating?: number;
   isVerified?: boolean;
 }

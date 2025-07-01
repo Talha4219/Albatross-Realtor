@@ -3,9 +3,10 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
 import { TrendingUp, AreaChart, DollarSign, Users, BarChartHorizontalBig, ExternalLink, MessageSquare } from 'lucide-react';
+import MarketTrendsChart from '@/components/trends/MarketTrendsChart'; // Import the new chart
 
 interface TrendSummary {
   id: string;
@@ -62,18 +63,16 @@ export default function MarketTrendsShowcase() {
           Get the latest data on property prices, demand, and investment opportunities to make informed decisions.
         </p>
 
-        {/* Interactive Chart Placeholder */}
         <Card className="mb-10 shadow-md">
           <CardHeader>
             <CardTitle className="font-headline text-xl flex items-center gap-2">
               <BarChartHorizontalBig className="w-6 h-6 text-primary" />
               Overall Market Activity
             </CardTitle>
+            <CardDescription>Illustrative data showing user engagement over time.</CardDescription>
           </CardHeader>
-          <CardContent className="h-64 md:h-80 flex items-center justify-center bg-muted/30 rounded-b-lg">
-            <p className="text-muted-foreground italic">
-              [Interactive Market Trend Chart Coming Soon - e.g., Price Index vs. Time]
-            </p>
+          <CardContent>
+            <MarketTrendsChart />
           </CardContent>
         </Card>
 
@@ -98,13 +97,10 @@ export default function MarketTrendsShowcase() {
           ))}
         </div>
         
-        {/* Trust Elements Placeholder */}
         <div className="text-center text-sm text-muted-foreground italic mb-8">
-          <p>[Data Sourced from Verified Listings and Industry Reports - Placeholder]</p>
-          <p>[Trusted by 10K+ Investors - Placeholder]</p>
+          <p>Data is sourced from verified listings and industry reports for illustrative purposes.</p>
         </div>
 
-        {/* Secondary CTA & AI Chat Prompt Placeholder */}
         <div className="text-center space-y-4">
           <Button size="lg" variant="default" asChild className="font-headline">
             <Link href="/market-trends">Explore All Market Trends</Link>

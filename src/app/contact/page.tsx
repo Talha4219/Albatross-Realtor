@@ -7,7 +7,6 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MailQuestion, Mail, Phone, MapPin, Loader2 } from 'lucide-react';
-import type { Metadata } from 'next';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,11 +20,6 @@ const contactFormSchema = z.object({
 });
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
-
-// export const metadata: Metadata = { // Metadata needs to be exported from server components
-//   title: 'Contact Us | Albatross Realtor',
-//   description: "Get in touch with Albatross Realtor. We're here to help you with your real estate needs.",
-// };
 
 export default function ContactPage() {
     const { toast } = useToast();
@@ -41,14 +35,29 @@ export default function ContactPage() {
 
     const { isSubmitting } = form.formState;
 
-    const onSubmit: SubmitHandler<ContactFormData> = (data) => {
-        // In a real app, you would send this data to your backend API
-        console.log("Contact form submitted:", data);
-        toast({
-            title: "Message Sent!",
-            description: "Thank you for contacting us. We will get back to you shortly. (This is a demo)",
-        });
-        form.reset();
+    const onSubmit: SubmitHandler<ContactFormData> = async (data) => {
+        try {
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.error || "Failed to send message.");
+            }
+            toast({
+                title: "Message Sent!",
+                description: "Thank you for contacting us. We will get back to you shortly.",
+            });
+            form.reset();
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: error instanceof Error ? error.message : "An unknown error occurred.",
+                variant: "destructive",
+            });
+        }
     };
 
   return (
