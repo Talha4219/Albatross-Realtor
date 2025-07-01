@@ -21,7 +21,7 @@ export default function AgentDashboardPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [totalViews, setTotalViews] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const { token, isLoading: isAuthLoading } from useAuth();
+  const { token, isLoading: isAuthLoading } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
