@@ -7,7 +7,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { AreaChart, BarChartBig } from "lucide-react";
+import { Activity, BarChart2 } from "lucide-react";
 
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -22,12 +22,12 @@ const chartConfig = {
   desktop: {
     label: "Desktop",
     color: "hsl(var(--chart-1))",
-    icon: BarChartBig,
+    icon: BarChart2,
   },
   mobile: {
     label: "Mobile",
     color: "hsl(var(--chart-2))",
-    icon: AreaChart,
+    icon: Activity,
   },
 } satisfies ChartConfig;
 

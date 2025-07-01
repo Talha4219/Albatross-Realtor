@@ -1,12 +1,11 @@
-
 "use client";
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import Link from 'next/link';
-import { TrendingUp, AreaChart, DollarSign, Users, BarChartHorizontalBig, ExternalLink, MessageSquare } from 'lucide-react';
-import MarketTrendsChart from '@/components/trends/MarketTrendsChart'; // Import the new chart
+import { TrendingUp, Activity, DollarSign, Users, BarChartHorizontal, ExternalLink, MessageSquare } from 'lucide-react';
+import MarketTrendsChart from '@/components/trends/MarketTrendsChart';
 
 interface TrendSummary {
   id: string;
@@ -28,7 +27,7 @@ const mockTrendSummaries: TrendSummary[] = [
   },
   {
     id: 'demand-commercial',
-    icon: AreaChart,
+    icon: Activity,
     title: 'Commercial Space Demand',
     dataPoint: '+12% Inquiries',
     description: 'Growing interest in office and retail spaces.',
@@ -66,7 +65,7 @@ export default function MarketTrendsShowcase() {
         <Card className="mb-10 shadow-md">
           <CardHeader>
             <CardTitle className="font-headline text-xl flex items-center gap-2">
-              <BarChartHorizontalBig className="w-6 h-6 text-primary" />
+              <BarChartHorizontal className="w-6 h-6 text-primary" />
               Overall Market Activity
             </CardTitle>
             <CardDescription>Illustrative data showing user engagement over time.</CardDescription>
