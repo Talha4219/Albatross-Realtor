@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -85,11 +85,12 @@ export default function EditDevelopmentPage() {
     }
   };
 
-  const getInitialFormData = (projectData: Project): Partial<DevelopmentFormData> => {
+  const initialFormData = useMemo((): Partial<DevelopmentFormData> => {
+    if (!project) return {};
     return {
-      ...projectData,
+      ...project,
     };
-  };
+  }, [project]);
   
   if (isAuthLoading || isLoadingData) {
     return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
@@ -135,7 +136,7 @@ export default function EditDevelopmentPage() {
             onSubmit={handleUpdate} 
             isLoading={isSubmitting} 
             formType="edit"
-            initialData={getInitialFormData(project)}
+            initialData={initialFormData}
           />
         </CardContent>
       </Card>

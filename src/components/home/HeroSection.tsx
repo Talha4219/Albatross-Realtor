@@ -55,7 +55,7 @@ export default function HeroSection() {
         >
           <Input
             type="text"
-            placeholder="Search by City, Area, or Property Type..."
+            placeholder="Search by City, Area (e.g., DHA Lahore)..."
             className="flex-grow !text-base text-foreground placeholder:text-muted-foreground h-12 px-4"
             aria-label="Search properties"
             value={searchTerm}

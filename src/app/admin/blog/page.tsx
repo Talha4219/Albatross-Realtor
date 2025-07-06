@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { BookText, PlusCircle, Edit, Trash2, Loader2, AlertTriangle, Eye, Check, X, Hourglass, User, RotateCcw } from 'lucide-react';
+import { BookText, PlusCircle, Edit, Trash2, Loader2, AlertTriangle, Eye, User } from 'lucide-react';
 import type { BlogPost } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
@@ -108,52 +108,10 @@ export default function AdminBlogPage() {
     }
   };
   
-  const handleUpdateStatus = async (postId: string, newStatus: 'Approved' | 'Rejected' | 'Pending') => {
-    if (!token) return;
-
-    try {
-      const response = await fetch(`/api/admin/blog/posts/${postId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ approvalStatus: newStatus }),
-      });
-
-      const result = await response.json();
-      if (response.ok && result.success) {
-        toast({
-          title: "Status Updated",
-          description: `Post status has been updated to ${newStatus}.`,
-        });
-        setPosts(prev => prev.map(p => p.id === postId ? result.data : p));
-      } else {
-        throw new Error(result.error || "Failed to update status.");
-      }
-    } catch (error) {
-      console.error("Error updating status:", error);
-      toast({
-        title: "Update Failed",
-        description: (error instanceof Error ? error.message : "An unknown error occurred."),
-        variant: "destructive",
-      });
-    }
-  };
-
    const getStatusBadgeVariant = (status: 'published' | 'draft') => {
     switch (status) {
       case 'published': return 'success';
       case 'draft': return 'secondary';
-      default: return 'outline';
-    }
-  };
-
-  const getApprovalStatusBadgeVariant = (status?: 'Pending' | 'Approved' | 'Rejected') => {
-    switch (status) {
-      case 'Approved': return 'success';
-      case 'Pending': return 'secondary';
-      case 'Rejected': return 'destructive';
       default: return 'outline';
     }
   };
@@ -221,7 +179,6 @@ export default function AdminBlogPage() {
                     <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Title</th>
                     <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Submitted By</th>
                     <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Publish Status</th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Approval Status</th>
                     <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Created At</th>
                     <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
                   </tr>
@@ -240,14 +197,6 @@ export default function AdminBlogPage() {
                          <Badge variant={getStatusBadgeVariant(post.status)}>{post.status}</Badge>
                        </td>
                        <td className="px-4 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                          <Badge variant={getApprovalStatusBadgeVariant(post.approvalStatus)}>
-                              {post.approvalStatus === 'Pending' && <Hourglass className="w-3 h-3 mr-1" />}
-                              {post.approvalStatus === 'Approved' && <Check className="w-3 h-3 mr-1" />}
-                              {post.approvalStatus === 'Rejected' && <X className="w-3 h-3 mr-1" />}
-                              {post.approvalStatus || 'N/A'}
-                          </Badge>
-                       </td>
-                       <td className="px-4 py-4 whitespace-nowrap text-sm text-muted-foreground">
                          {post.createdAt ? format(new Date(post.createdAt), 'yyyy-MM-dd') : 'N/A'}
                        </td>
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-1">
@@ -257,24 +206,6 @@ export default function AdminBlogPage() {
                         <Button variant="outline" size="sm" asChild>
                           <Link href={`/admin/blog/edit/${post.id}`}><Edit className="mr-1 h-3.5 w-3.5"/>Edit</Link>
                         </Button>
-                        
-                        {/* Approval Actions */}
-                        {post.approvalStatus === 'Pending' && (
-                          <>
-                            <Button variant="success" size="sm" onClick={() => handleUpdateStatus(post.id, 'Approved')}>
-                              <Check className="mr-1 h-3.5 w-3.5"/> Approve
-                            </Button>
-                            <Button variant="destructive" size="sm" onClick={() => handleUpdateStatus(post.id, 'Rejected')}>
-                              <X className="mr-1 h-3.5 w-3.5"/> Reject
-                            </Button>
-                          </>
-                        )}
-                        {(post.approvalStatus === 'Approved' || post.approvalStatus === 'Rejected') && (
-                          <Button variant="secondary" size="sm" onClick={() => handleUpdateStatus(post.id, 'Pending')}>
-                            <RotateCcw className="mr-1 h-3.5 w-3.5"/> Mark as Pending
-                          </Button>
-                        )}
-
                         <Button variant="destructive" size="sm" onClick={() => setPostToDelete(post)}>
                           <Trash2 className="mr-1 h-3.5 w-3.5"/>Delete
                         </Button>

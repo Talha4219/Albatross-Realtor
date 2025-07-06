@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 import { blogCategories, type BlogCategory } from '@/types';
 
 const blogPostFormSchema = z.object({
@@ -71,7 +71,7 @@ export default function BlogPostForm({ onSubmit, initialData, isLoading, formTyp
           render={({ field }) => (
             <FormItem>
               <FormLabel>Title*</FormLabel>
-              <FormControl><Input placeholder="e.g., How to Buy Your First Home" {...field} /></FormControl>
+              <FormControl><Input placeholder="e.g., A Guide to Investing in DHA Lahore" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -82,7 +82,7 @@ export default function BlogPostForm({ onSubmit, initialData, isLoading, formTyp
           render={({ field }) => (
             <FormItem>
               <FormLabel>Excerpt*</FormLabel>
-              <FormControl><Textarea placeholder="A short summary of the post..." {...field} /></FormControl>
+              <FormControl><Textarea placeholder="A short, catchy summary of your article..." {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -93,7 +93,7 @@ export default function BlogPostForm({ onSubmit, initialData, isLoading, formTyp
           render={({ field }) => (
             <FormItem>
               <FormLabel>Content (Markdown supported)*</FormLabel>
-              <FormControl><Textarea placeholder="Write your full blog post here..." {...field} rows={15} /></FormControl>
+              <FormControl><Textarea placeholder="Write your full article here. Markdown is supported." {...field} rows={15} /></FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -147,7 +147,7 @@ export default function BlogPostForm({ onSubmit, initialData, isLoading, formTyp
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Author (Optional)</FormLabel>
-                <FormControl><Input placeholder="e.g., Jane Doe" {...field} /></FormControl>
+                <FormControl><Input placeholder="e.g., Ahmed Ali" {...field} /></FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -159,7 +159,7 @@ export default function BlogPostForm({ onSubmit, initialData, isLoading, formTyp
           render={({ field }) => (
             <FormItem>
               <FormLabel>Tags (Optional, comma-separated)</FormLabel>
-              <FormControl><Input placeholder="e.g., investment, tips, market" {...field} /></FormControl>
+              <FormControl><Input placeholder="e.g., investment, lahore, dha" {...field} /></FormControl>
               <FormMessage />
             </FormItem>
           )}

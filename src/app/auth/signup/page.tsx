@@ -1,22 +1,22 @@
 
-
 "use client";
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, Loader2, Info } from 'lucide-react';
+import { AlertCircle, Loader2, Info, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Form, FormControl, FormField, FormItem, FormMessage, FormLabel } from '@/components/ui/form'; // ShadCN Form
+import { Form, FormControl, FormField, FormItem, FormMessage, FormLabel } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from '@/hooks/use-toast';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 const signupFormSchema = z.object({
@@ -25,6 +25,7 @@ const signupFormSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters." }),
   role: z.enum(['user', 'agent'], { required_error: "You must select a role." }),
   phone: z.string().optional(),
+  profilePictureUrl: z.string().optional(),
 }).refine((data) => {
     if (data.role === 'agent') {
         return !!data.phone && data.phone.length > 0;
@@ -42,6 +43,7 @@ export default function SignupPage() {
   const { signup, isLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupFormSchema),
@@ -49,8 +51,9 @@ export default function SignupPage() {
       name: "",
       email: "",
       password: "",
-      role: "user",
+      role: "agent",
       phone: "",
+      profilePictureUrl: "",
     },
   });
 
@@ -58,9 +61,8 @@ export default function SignupPage() {
 
   const onSubmit: SubmitHandler<SignupFormData> = async (data) => {
     setApiError(null);
-    const result = await signup(data.name, data.email, data.password, data.role, data.phone);
+    const result = await signup(data.name, data.email, data.password, data.role, data.phone, data.profilePictureUrl);
     
-    // AuthContext now handles successful login. We just need to handle navigation.
     if (result.success && result.data?.user) {
         const user = result.data.user;
         toast({
@@ -72,11 +74,33 @@ export default function SignupPage() {
         } else if (user.role === 'agent') {
             router.push('/agent/dashboard');
         } else {
-            router.push('/'); // Regular users go to homepage
+            router.push('/'); 
         }
     } else {
       setApiError(result.error || "Signup failed. The email might already be in use.");
     }
+  };
+  
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+      toast({ variant: 'destructive', title: 'File too large', description: 'Image must be smaller than 2MB.' });
+      return;
+    }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast({ variant: 'destructive', title: 'Invalid file type', description: 'Please select a JPG, PNG, or WEBP image.' });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      setImagePreview(result);
+      form.setValue('profilePictureUrl', result, { shouldValidate: true, shouldDirty: true });
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -86,7 +110,7 @@ export default function SignupPage() {
         <CardDescription>Join Albatross Realtor to find your dream property.</CardDescription>
       </CardHeader>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <CardContent className="space-y-4">
             {apiError && (
               <div className="bg-destructive/10 border border-destructive/50 text-destructive p-3 rounded-md flex items-center gap-2 text-sm">
@@ -109,17 +133,6 @@ export default function SignupPage() {
                     >
                       <FormItem className="flex items-start space-x-3 space-y-0">
                         <FormControl>
-                          <RadioGroupItem value="user" />
-                        </FormControl>
-                        <div className="flex-1">
-                           <FormLabel className="font-normal leading-none">
-                            User
-                          </FormLabel>
-                           <p className="text-xs text-muted-foreground mt-1">Browse listings, save properties, and connect with agents.</p>
-                        </div>
-                      </FormItem>
-                      <FormItem className="flex items-start space-x-3 space-y-0">
-                        <FormControl>
                           <RadioGroupItem value="agent" />
                         </FormControl>
                          <div className="flex-1">
@@ -131,12 +144,23 @@ export default function SignupPage() {
                                     <Info className="w-3.5 h-3.5 text-muted-foreground cursor-pointer"/>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p className="max-w-[250px] text-xs">Agents can list properties and create a public profile. Agent accounts require admin approval.</p>
+                                    <p className="max-w-[250px] text-xs">Agents can list properties and create a public profile. All agent submissions are auto-verified.</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
                           </FormLabel>
                            <p className="text-xs text-muted-foreground mt-1">List properties, manage your portfolio, and connect with clients.</p>
+                        </div>
+                      </FormItem>
+                      <FormItem className="flex items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="user" />
+                        </FormControl>
+                        <div className="flex-1">
+                           <FormLabel className="font-normal leading-none">
+                            User
+                          </FormLabel>
+                           <p className="text-xs text-muted-foreground mt-1">Browse listings, save properties, and connect with agents.</p>
                         </div>
                       </FormItem>
                     </RadioGroup>
@@ -145,6 +169,36 @@ export default function SignupPage() {
                 </FormItem>
               )}
             />
+            
+            <div className="flex flex-col items-center gap-4 py-4">
+              <Avatar className="w-24 h-24">
+                <AvatarImage src={imagePreview || undefined} alt="Profile Preview" />
+                <AvatarFallback>{form.getValues('name')?.substring(0, 2).toUpperCase() || 'U'}</AvatarFallback>
+              </Avatar>
+              <FormField
+                control={form.control}
+                name="profilePictureUrl"
+                render={() => (
+                  <FormItem>
+                    <FormControl>
+                      <div>
+                        <label htmlFor="picture-upload" className={buttonVariants({ variant: "outline" })}>
+                          <Upload className="mr-2 h-4 w-4"/> Upload Picture (Optional)
+                        </label>
+                        <Input
+                          id="picture-upload"
+                          type="file"
+                          className="hidden"
+                          accept="image/png, image/jpeg, image/webp"
+                          onChange={handleFileChange}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -153,7 +207,7 @@ export default function SignupPage() {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="John Doe" {...field} className="text-base" />
+                    <Input placeholder="e.g., Ali Khan" {...field} className="text-base" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

@@ -1,5 +1,4 @@
 
-
 import mongoose, { Document, Schema, Model } from 'mongoose';
 import type { UserRole } from '@/types';
 
@@ -11,7 +10,7 @@ export interface IUser extends Document {
   role: UserRole;
   profilePictureUrl?: string;
   phone?: string;
-  specialty?: string; // Added for agents
+  specialty?: string;
   isEmailVerified: boolean;
   passwordResetToken?: string;
   passwordResetTokenExpires?: Date;
@@ -52,13 +51,13 @@ const UserSchema = new Schema<IUser>({
     type: String,
     trim: true,
   },
-  specialty: { // Added for agents
+  specialty: {
     type: String,
     trim: true,
   },
   isEmailVerified: {
     type: Boolean,
-    default: true, // Simplified flow: all users are verified by default.
+    default: true,
   },
   passwordResetToken: {
     type: String,
@@ -73,10 +72,9 @@ const UserSchema = new Schema<IUser>({
   toJSON: {
     virtuals: true,
     transform: (doc, ret) => {
-      ret.id = ret._id.toString();
       delete ret._id;
       delete ret.__v;
-      delete ret.passwordHash; // Do not expose password hash
+      delete ret.passwordHash;
       delete ret.passwordResetToken;
       delete ret.passwordResetTokenExpires;
     }
@@ -84,18 +82,13 @@ const UserSchema = new Schema<IUser>({
   toObject: {
     virtuals: true,
     transform: (doc, ret) => {
-      ret.id = ret._id.toString();
       delete ret._id;
       delete ret.__v;
-      delete ret.passwordHash; // Do not expose password hash
+      delete ret.passwordHash;
       delete ret.passwordResetToken;
       delete ret.passwordResetTokenExpires;
     }
   }
-});
-
-UserSchema.virtual('id').get(function() {
-  return this._id.toHexString();
 });
 
 const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

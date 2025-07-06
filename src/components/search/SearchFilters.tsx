@@ -26,7 +26,12 @@ interface SearchFiltersProps {
   isLoading?: boolean;
 }
 
-const propertyTypes: PropertyTypeEnum[] = ['House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot'];
+const propertyTypes: PropertyTypeEnum[] = [
+    'House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot', 
+    'Flat', 'Upper Portion', 'Lower Portion', 'Farm House', 'Room', 'Penthouse',
+    'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form',
+    'Office', 'Shop', 'Warehouse', 'Factory', 'Building', 'Other'
+];
 const bedOptions = [1, 2, 3, 4, 5];
 const bathOptions = [1, 2, 3, 4];
 
@@ -69,7 +74,7 @@ export default function SearchFilters({ onSearch, initialFilters, isLoading }: S
             <Label htmlFor="q">Location / Keyword</Label>
             <Input
               id="q"
-              placeholder="City, State, Zip, or Address"
+              placeholder="City, Area (e.g., Bahria Town), or Address"
               value={filters.q}
               onChange={(e) => handleInputChange('q', e.target.value)}
             />
@@ -117,12 +122,12 @@ export default function SearchFilters({ onSearch, initialFilters, isLoading }: S
           </div>
           <div className="lg:col-span-2 grid grid-cols-2 gap-2">
             <div>
-                <Label htmlFor="minPrice">Min. Price (Rs)</Label>
-                <Input id="minPrice" type="number" placeholder="No Min" value={filters.minPrice} onChange={(e) => handleInputChange('minPrice', e.target.value)} />
+                <Label htmlFor="minPrice">Min. Price (PKR)</Label>
+                <Input id="minPrice" type="number" placeholder="e.g., 5000000" value={filters.minPrice} onChange={(e) => handleInputChange('minPrice', e.target.value)} />
             </div>
              <div>
-                <Label htmlFor="maxPrice">Max. Price (Rs)</Label>
-                <Input id="maxPrice" type="number" placeholder="No Max" value={filters.maxPrice} onChange={(e) => handleInputChange('maxPrice', e.target.value)} />
+                <Label htmlFor="maxPrice">Max. Price (PKR)</Label>
+                <Input id="maxPrice" type="number" placeholder="e.g., 20000000" value={filters.maxPrice} onChange={(e) => handleInputChange('maxPrice', e.target.value)} />
             </div>
           </div>
           <div className="lg:col-span-4 flex justify-end mt-4">

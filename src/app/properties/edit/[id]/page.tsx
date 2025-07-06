@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import PropertyForm, { type PropertyFormData } from '@/components/property/PropertyForm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -128,16 +128,19 @@ export default function EditPropertyPage() {
     );
   }
 
-  const initialFormData: Partial<PropertyFormData> = {
-    ...property,
-    price: property.price ?? 0,
-    bedrooms: property.bedrooms ?? 0,
-    bathrooms: property.bathrooms ?? 0,
-    areaSqFt: property.areaSqFt ?? 0,
-    yearBuilt: property.yearBuilt ?? null,
-    images: property.images && property.images.length > 0 ? property.images : [''],
-    features: property.features && property.features.length > 0 ? property.features : [''],
-  };
+  const initialFormData: Partial<PropertyFormData> = useMemo(() => {
+    if (!property) return {};
+    return {
+        ...property,
+        price: property.price ?? 0,
+        bedrooms: property.bedrooms ?? 0,
+        bathrooms: property.bathrooms ?? 0,
+        areaSqFt: property.areaSqFt ?? 0,
+        yearBuilt: property.yearBuilt ?? null,
+        images: property.images && property.images.length > 0 ? property.images : [''],
+        features: property.features && property.features.length > 0 ? property.features : [''],
+    };
+  }, [property]);
 
 
   return (

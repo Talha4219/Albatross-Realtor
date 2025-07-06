@@ -60,28 +60,34 @@ const getPropertyListingsTool = ai.defineTool(
       status: input.status,
       search: input.location,
     }).toString();
-    
+
     // Use a relative path for the API call to work in any environment
+    // NOTE: This assumes the flow is run from a server environment where it can resolve this relative path.
     const apiUrl = `/api/properties?${query}`;
 
-    // Note: This requires the server to handle the request at this path.
-    // Fetch from the relative path, assuming the UI and API are on the same domain.
-    const response = await fetch(new URL(apiUrl, 'http://localhost:9002'));
+    try {
+      // In a server environment (like Next.js), you need to provide a base URL.
+      // We assume a base URL from an environment variable, falling back to localhost.
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9002';
+      const response = await fetch(new URL(apiUrl, baseUrl));
 
-    if (!response.ok) {
-        console.error("Failed to fetch properties from API for tool");
-        return [];
-    }
-    const result = await response.json();
-    if (result.success && Array.isArray(result.data)) {
-        // Return a simplified version of the property data for the AI
-        return result.data.slice(0, 5).map((p: Property) => ({
-            id: p.id,
-            address: p.address,
-            price: p.price,
-            bedrooms: p.bedrooms,
-            bathrooms: p.bathrooms,
-        }));
+      if (!response.ok) {
+          console.error(`Failed to fetch properties from API for tool. Status: ${response.status}`);
+          return [];
+      }
+      const result = await response.json();
+      if (result.success && Array.isArray(result.data)) {
+          // Return a simplified version of the property data for the AI
+          return result.data.slice(0, 5).map((p: Property) => ({
+              id: p.id,
+              address: p.address,
+              price: p.price,
+              bedrooms: p.bedrooms,
+              bathrooms: p.bathrooms,
+          }));
+      }
+    } catch (error) {
+        console.error("Error fetching properties for tool:", error);
     }
     return [];
   }

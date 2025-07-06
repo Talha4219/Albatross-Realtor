@@ -60,10 +60,10 @@ export default function AdminHeader() {
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon" className="overflow-hidden rounded-full">
             <Avatar className="h-8 w-8">
-              <AvatarImage src="https://placehold.co/40x40.png" alt={user?.name || 'Admin Avatar'} data-ai-hint="person avatar"/>
+              <AvatarImage src={user?.profilePictureUrl} alt={user?.name || 'Admin Avatar'} data-ai-hint="person avatar"/>
               <AvatarFallback>{adminInitials}</AvatarFallback>
             </Avatar>
-          </Button>
+          </Button> 
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>{user?.name || user?.email || "Admin Account"}</DropdownMenuLabel>

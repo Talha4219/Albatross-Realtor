@@ -90,7 +90,7 @@ export default function AdminSidebar() {
       <SidebarFooter className="border-t border-sidebar-border p-2 space-y-2">
          <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:justify-center">
             <Avatar className="h-8 w-8">
-              <AvatarImage src="https://placehold.co/40x40.png" alt={user?.name || "Admin"} data-ai-hint="person avatar"/>
+              <AvatarImage src={user?.profilePictureUrl} alt={user?.name || "Admin"} data-ai-hint="person avatar"/>
               <AvatarFallback>{adminInitials}</AvatarFallback>
             </Avatar>
             <div className="text-sm group-data-[collapsible=icon]:hidden">

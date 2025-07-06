@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Building, PlusCircle, Edit, Trash2, Loader2, AlertTriangle, Eye, RotateCcw } from 'lucide-react';
+import { Building, PlusCircle, Edit, Trash2, Loader2, AlertTriangle, Eye } from 'lucide-react';
 import type { Property } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
@@ -96,15 +96,6 @@ function MyPropertiesPageContent() {
     }
   };
   
-  const getStatusBadgeVariant = (status: 'Pending' | 'Approved' | 'Rejected' | undefined) => {
-    switch (status) {
-      case 'Approved': return 'success';
-      case 'Pending': return 'secondary';
-      case 'Rejected': return 'destructive';
-      default: return 'outline';
-    }
-  };
-
   const pageTitle = "My Property Listings";
   const pageDescription = "Manage, edit, and view the status of your submitted properties.";
 
@@ -165,7 +156,6 @@ function MyPropertiesPageContent() {
                   <tr>
                     <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Address</th>
                     <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Approval Status</th>
                     <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date Submitted</th>
                     <th scope="col" className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
                   </tr>
@@ -176,11 +166,6 @@ function MyPropertiesPageContent() {
                       <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-foreground">{prop.address}</td>
                        <td className="px-4 py-4 whitespace-nowrap text-sm text-muted-foreground">
                          <Badge variant={prop.status === 'For Sale' ? 'default' : prop.status === 'For Rent' ? 'secondary' : 'outline'}>{prop.status}</Badge>
-                       </td>
-                       <td className="px-4 py-4 whitespace-nowrap text-sm text-muted-foreground">
-                          <Badge variant={getStatusBadgeVariant(prop.approvalStatus)}>
-                            {prop.approvalStatus}
-                          </Badge>
                        </td>
                        <td className="px-4 py-4 whitespace-nowrap text-sm text-muted-foreground">
                          {prop.createdAt ? format(new Date(prop.createdAt), 'yyyy-MM-dd') : 'N/A'}

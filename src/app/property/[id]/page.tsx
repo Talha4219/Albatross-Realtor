@@ -6,8 +6,7 @@ import { useParams, notFound } from 'next/navigation';
 import Image from 'next/image';
 import type { Property, PropertyTypeEnum, UserProfile } from '@/types';
 import { PropertyCarousel } from '@/components/property/PropertyCarousel';
-import MapPlaceholder from '@/components/map/MapPlaceholder';
-import InteractiveMap from '@/components/map/InteractiveMap';
+import DynamicMap from '@/components/map/DynamicMap';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -26,6 +25,8 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
+  DialogFooter,
+  DialogClose,
 } from '@/components/ui/dialog';
 
 
@@ -94,14 +95,15 @@ export default function PropertyDetailPage() {
     }
   };
 
-  const postedDate = new Date(property.postedDate);
-  const timeAgo = formatDistanceToNow(postedDate, { addSuffix: true });
+  const timeAgo = property.createdAt ? formatDistanceToNow(new Date(property.createdAt), { addSuffix: true }) : 'recently';
 
   const submittedByUser = property.submittedBy as UserProfile;
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    // Responsive container padding and spacing
+    <div className="container mx-auto px-4 py-4 md:py-8 space-y-6 md:space-y-8">
+      {/* Responsive grid with smaller gap on mobile */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         <div className="lg:col-span-2">
           <PropertyCarousel 
             images={property.images} 
@@ -113,7 +115,7 @@ export default function PropertyDetailPage() {
           <Card>
             <CardHeader>
               <div className="flex justify-between items-start mb-2">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge variant={property.status === 'For Sale' ? 'default' : property.status === 'For Rent' ? 'secondary' : 'outline'} className="text-sm">{property.status}</Badge>
                   {property.isVerified && (
                     <Badge variant="success" className="text-sm flex items-center">
@@ -131,28 +133,31 @@ export default function PropertyDetailPage() {
                   <Heart size={28} className={isSaved ? "fill-current" : ""} />
                 </Button>
               </div>
-              <h1 className="text-3xl font-headline font-bold text-primary">{property.address}</h1>
+              {/* Responsive heading */}
+              <h1 className="text-2xl sm:text-3xl font-headline font-bold text-primary">{property.address}</h1>
               <p className="text-lg text-muted-foreground flex items-center mt-1">
-                <MapPin className="w-5 h-5 mr-2 shrink-0" /> {property.city}, {property.state} {property.zip}
+                <MapPin className="w-5 h-5 mr-2 shrink-0" /> {property.city}
               </p>
-              <p className="text-4xl font-headline font-bold text-accent mt-2">Rs {property.price.toLocaleString()}</p>
+              {/* Responsive price */}
+              <p className="text-3xl sm:text-4xl font-headline font-bold text-accent mt-2">Rs {property.price.toLocaleString()}</p>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-lg">
+            {/* Responsive grid for info items */}
+            <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-base md:text-lg">
               <InfoItem icon={<BedDouble className="text-primary" />} label="Beds" value={String(property.bedrooms)} />
               <InfoItem icon={<Bath className="text-primary" />} label="Baths" value={String(property.bathrooms)} />
               <InfoItem icon={<Maximize className="text-primary" />} label="SqFt" value={property.areaSqFt.toLocaleString()} />
               <InfoItem icon={<Building className="text-primary" />} label="Type" value={property.propertyType} />
               {property.yearBuilt && <InfoItem icon={<CalendarDays className="text-primary" />} label="Built" value={String(property.yearBuilt)} />}
-               <InfoItem icon={<Tag className="text-primary" />} label="Posted" value={timeAgo} />
+               {property.createdAt && <InfoItem icon={<Tag className="text-primary" />} label="Posted" value={timeAgo} />}
             </CardContent>
           </Card>
            {submittedByUser && (
              <Card>
               <CardHeader>
-                <CardTitle className="font-headline">Listed By</CardTitle>
+                <CardTitle className="font-headline text-xl">Listed By</CardTitle>
               </CardHeader>
               <CardContent className="flex items-center space-x-4">
-                <Avatar className="h-20 w-20">
+                <Avatar className="h-16 w-16 sm:h-20 sm:w-20">
                   <AvatarImage src={submittedByUser.profilePictureUrl || ''} alt={submittedByUser.name} data-ai-hint="person portrait"/>
                   <AvatarFallback>{submittedByUser.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                 </Avatar>
@@ -164,45 +169,47 @@ export default function PropertyDetailPage() {
               <CardContent>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button className="w-full font-headline">
-                      <Phone className="w-4 h-4 mr-2" /> Contact Now
+                    <Button className="w-full font-headline" variant="outline">
+                      <Phone className="w-4 h-4 mr-2" /> Show Contact Information
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
+                  <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                      <DialogTitle>Contact Information</DialogTitle>
+                      <DialogTitle>Lister Contact Information</DialogTitle>
                       <DialogDescription>
-                        Contact details for the lister of {property.address}.
+                        Contact details for the person who listed this property.
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="space-y-4 py-4">
-                       <div className="flex items-center gap-4">
-                        <Avatar className="h-16 w-16">
-                           <AvatarImage src={submittedByUser.profilePictureUrl || ''} alt={submittedByUser.name} data-ai-hint="person portrait"/>
-                           <AvatarFallback>{submittedByUser.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <p className="text-lg font-semibold">{submittedByUser.name}</p>
-                            <p className="text-sm text-muted-foreground">{submittedByUser.role}</p>
+                    <div className="py-4 space-y-4">
+                        <div className="flex items-center gap-4">
+                            <Avatar className="h-16 w-16">
+                                <AvatarImage src={submittedByUser.profilePictureUrl || ''} alt={submittedByUser.name} data-ai-hint="person portrait" />
+                                <AvatarFallback>{submittedByUser.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <p className="font-semibold text-lg">{submittedByUser.name}</p>
+                                <p className="text-sm text-muted-foreground">{submittedByUser.role === 'agent' ? 'Verified Agent' : 'Listing Contributor'}</p>
+                            </div>
                         </div>
-                      </div>
-                      <div className="space-y-2 text-sm border-t pt-4">
-                          <p className="flex items-center gap-2 font-medium">
-                            <a href={`mailto:${submittedByUser.email}`} className="flex items-center gap-2 hover:underline">
-                              <Mail className="w-4 h-4 text-primary" /> {submittedByUser.email}
-                            </a>
-                          </p>
-                          {submittedByUser.phone ? (
-                              <p className="flex items-center gap-2 font-medium">
-                                <a href={`tel:${submittedByUser.phone}`} className="flex items-center gap-2 hover:underline">
-                                  <Phone className="w-4 h-4 text-primary" /> {submittedByUser.phone}
-                                </a>
-                              </p>
-                          ) : (
-                              <p className="flex items-center gap-2 text-muted-foreground"><Phone className="w-4 h-4" /> No phone number provided.</p>
-                          )}
-                      </div>
+                        <Separator />
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-3">
+                                <Mail className="w-5 h-5 text-muted-foreground" />
+                                <a href={`mailto:${submittedByUser.email}`} className="text-sm text-foreground hover:underline">{submittedByUser.email}</a>
+                            </div>
+                            {submittedByUser.phone && (
+                                <div className="flex items-center gap-3">
+                                    <Phone className="w-5 h-5 text-muted-foreground" />
+                                    <a href={`tel:${submittedByUser.phone}`} className="text-sm text-foreground hover:underline">{submittedByUser.phone}</a>
+                                </div>
+                            )}
+                        </div>
                     </div>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button type="button">Close</Button>
+                      </DialogClose>
+                    </DialogFooter>
                   </DialogContent>
                 </Dialog>
               </CardContent>
@@ -213,21 +220,22 @@ export default function PropertyDetailPage() {
 
       <Separator />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <div className="md:col-span-2">
+      {/* Responsive grid with smaller gap on mobile */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+        <div className="md:col-span-2 space-y-6 md:space-y-8">
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline">Property Description</CardTitle>
+              <CardTitle className="font-headline text-xl">Property Description</CardTitle>
             </CardHeader>
-            <CardContent className="prose dark:prose-invert max-w-none">
+            <CardContent className="prose dark:prose-invert max-w-none text-base">
               <p>{property.description}</p>
             </CardContent>
           </Card>
 
           {property.features && property.features.length > 0 && (
-            <Card className="mt-8">
+            <Card>
               <CardHeader>
-                <CardTitle className="font-headline">Features</CardTitle>
+                <CardTitle className="font-headline text-xl">Features</CardTitle>
               </CardHeader>
               <CardContent>
                 <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2">
@@ -242,30 +250,16 @@ export default function PropertyDetailPage() {
             </Card>
           )}
         </div>
-        <div className="md:col-span-1 space-y-8">
+        <div className="md:col-span-1 space-y-6 md:space-y-8">
+          
           <Card>
             <CardHeader>
-              <CardTitle className="font-headline">Location</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[300px] p-0">
-               {property.latitude && property.longitude ? (
-                <InteractiveMap 
-                  properties={[property]}
-                  className="h-full w-full rounded-b-lg"
-                />
-              ) : (
-                <MapPlaceholder height="300px" />
-              )}
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-headline">Neighborhood Insights</CardTitle>
+              <CardTitle className="font-headline text-xl">Neighborhood Insights</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-muted-foreground mb-4">Discover more about the neighborhood.</p>
               <Button asChild className="font-headline">
-                <Link href={`/insights?location=${encodeURIComponent(property.city + ', ' + property.state)}`}>
+                <Link href={`/insights?location=${encodeURIComponent(property.city)}`}>
                   Get Insights <ExternalLink className="w-4 h-4 ml-2" />
                 </Link>
               </Button>
@@ -294,8 +288,8 @@ const InfoItem: React.FC<InfoItemProps> = ({ icon, label, value }) => (
 );
 
 const SkeletonPropertyPage = () => (
-  <div className="space-y-8 animate-pulse">
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div className="space-y-6 md:space-y-8 animate-pulse">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
       <div className="lg:col-span-2">
         <Skeleton className="w-full aspect-[16/10] rounded-lg" />
       </div>
@@ -309,9 +303,9 @@ const SkeletonPropertyPage = () => (
               </div>
               <Skeleton className="h-8 w-8 rounded-full" /> 
             </div>
-            <Skeleton className="h-10 w-3/4 mb-1" /> 
+            <Skeleton className="h-8 sm:h-10 w-3/4 mb-1" /> 
             <Skeleton className="h-6 w-1/2 mb-2" /> 
-            <Skeleton className="h-12 w-1/2" /> 
+            <Skeleton className="h-10 sm:h-12 w-1/2" /> 
           </CardHeader>
           <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {[...Array(6)].map((_, i) => (
@@ -327,10 +321,9 @@ const SkeletonPropertyPage = () => (
             <Skeleton className="h-6 w-1/3" /> 
           </CardHeader>
           <CardContent className="flex items-center space-x-4">
-            <Skeleton className="w-20 h-20 rounded-full" />
+            <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" />
             <div className="space-y-2 flex-1">
               <Skeleton className="h-5 w-3/4" />
-              <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-full" />
             </div>
           </CardContent>
@@ -338,12 +331,11 @@ const SkeletonPropertyPage = () => (
             <Skeleton className="h-10 w-full mt-2" /> 
           </CardContent>
         </Card>
-        <Skeleton className="h-10 w-full" /> 
       </div>
     </div>
     <Separator />
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div className="md:col-span-2 space-y-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+      <div className="md:col-span-2 space-y-6 md:space-y-8">
         <Card>
           <CardHeader><Skeleton className="h-6 w-1/4" /></CardHeader>
           <CardContent className="space-y-2">
@@ -354,16 +346,12 @@ const SkeletonPropertyPage = () => (
         </Card>
         <Card>
           <CardHeader><Skeleton className="h-6 w-1/3" /></CardHeader>
-          <CardContent className="grid grid-cols-2 gap-2">
+          <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2">
              {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-4 w-full" />)}
           </CardContent>
         </Card>
       </div>
-      <div className="md:col-span-1 space-y-8">
-        <Card>
-          <CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader>
-          <CardContent><Skeleton className="h-[300px] w-full rounded" /></CardContent>
-        </Card>
+      <div className="md:col-span-1 space-y-6 md:space-y-8">
          <Card>
           <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
           <CardContent className="text-center">

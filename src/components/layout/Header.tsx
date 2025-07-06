@@ -41,6 +41,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { ThemeToggle } from '@/components/theme/ThemeToggle'; 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface NavSubItem {
   title: string;
@@ -114,6 +115,9 @@ export default function Header() {
   const handleLogout = () => {
     logout();
   };
+  
+  const userInitials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() :
+                     user?.email ? user.email.substring(0, 2).toUpperCase() : "U";
   
   const renderMobileNavLinks = () => (
     <div className="flex flex-col space-y-1 p-2">
@@ -285,7 +289,14 @@ export default function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full" aria-label="User Account">
-                  <UserCircle2 className="h-7 w-7" />
+                  {user ? (
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={user.profilePictureUrl} alt={user.name || ''} data-ai-hint="person portrait" />
+                      <AvatarFallback>{userInitials}</AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <UserCircle2 className="h-7 w-7" />
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">

@@ -12,6 +12,8 @@ export default function InsightsPageClient() {
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const [defaultLocation, setDefaultLocation] = useState('');
+  const [submittedLocation, setSubmittedLocation] = useState('');
+
 
   useEffect(() => {
     const locationFromQuery = searchParams.get('location');
@@ -20,8 +22,9 @@ export default function InsightsPageClient() {
     }
   }, [searchParams]);
 
-  const handleInsightsGenerated = (generatedInsights: NeighborhoodInsightsOutput | null, errorMessage?: string) => {
+  const handleInsightsGenerated = (generatedInsights: NeighborhoodInsightsOutput | null, location: string, errorMessage?: string) => {
     setInsights(generatedInsights);
+    setSubmittedLocation(location);
     setError(errorMessage || null);
   };
 
@@ -39,7 +42,7 @@ export default function InsightsPageClient() {
         defaultLocation={defaultLocation}
         generateInsightsAction={generateInsightsAction}
       />
-      { (insights || error) && <NeighborhoodInsightsDisplay insights={insights} error={error} /> }
+      { (insights || error) && <NeighborhoodInsightsDisplay insights={insights} error={error} location={submittedLocation} /> }
     </div>
   );
 }

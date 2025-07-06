@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation'; // Import useSearchParams
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Building, PlusCircle, AlertTriangle, Loader2, Check, X, Hourglass, RotateCcw, User } from 'lucide-react';
+import { Building, PlusCircle, AlertTriangle, Loader2, RotateCcw, User } from 'lucide-react';
 import type { Property as PropertyType } from '@/types'; 
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
@@ -84,7 +84,6 @@ export default function AdminPropertiesPage() {
       if (data.success) {
         const fetchedProperties = data.data.map((prop: any) => ({
           ...prop,
-          postedDate: new Date(prop.postedDate).toISOString(),
           agent: prop.agent ? {
             id: prop.agent.id || 'N/A',
             name: prop.agent.name || 'N/A',
@@ -131,51 +130,6 @@ export default function AdminPropertiesPage() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, isAuthLoading, filterByUserId, filterByPropertyType]);
-
-  const handleUpdateStatus = async (propertyId: string, newStatus: 'Approved' | 'Rejected' | 'Pending') => {
-    if (!token) {
-      toast({ title: "Authentication Error", description: "You must be logged in as an admin.", variant: "destructive" });
-      return;
-    }
-    const propertyToUpdate = properties.find(p => p.id === propertyId);
-    if (!propertyToUpdate) {
-        toast({ title: "Error", description: "Property not found locally.", variant: "destructive"});
-        return;
-    }
-
-    try {
-      const response = await fetch(`/api/properties/${propertyId}/update-status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ approvalStatus: newStatus }),
-      });
-      const result = await response.json();
-      if (response.ok && result.success) {
-        toast({ title: `Property ${newStatus}`, description: `Property ID ${propertyId} has been ${newStatus.toLowerCase()}.`, variant: "default" });
-        setProperties(prev => 
-          prev.map(p => p.id === propertyId ? { ...p, approvalStatus: newStatus, status: result.data.status } : p)
-        );
-      } else {
-        throw new Error(result.error || `Failed to update property status to ${newStatus}`);
-      }
-    } catch (err) {
-      console.error(`Error updating property ${propertyId} to ${newStatus}:`, err);
-      toast({ title: "Update Failed", description: (err instanceof Error ? err.message : "An unknown error occurred"), variant: "destructive"});
-    }
-  };
-
-
-  const getApprovalStatusBadgeVariant = (status?: 'Pending' | 'Approved' | 'Rejected') => {
-    switch (status) {
-      case 'Approved': return 'success';
-      case 'Pending': return 'secondary';
-      case 'Rejected': return 'destructive';
-      default: return 'outline';
-    }
-  };
 
  const renderErrorContent = () => {
     if (!error) return null;
@@ -244,8 +198,8 @@ export default function AdminPropertiesPage() {
             {filterByUserId && filterUserName 
               ? `Showing properties submitted by ${filterUserName}.` 
               : filterByPropertyType
-              ? `View, edit, approve, and manage all ${filterByPropertyType.toLowerCase()} listings.`
-              : `View, edit, approve, and manage all property listings.`}
+              ? `View, edit, and manage all ${filterByPropertyType.toLowerCase()} listings.`
+              : `View, edit, and manage all property listings.`}
           </p>
         </div>
         <Button asChild>
@@ -291,7 +245,6 @@ export default function AdminPropertiesPage() {
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Price</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Submitted By</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Listing Status</th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Approval Status</th>
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -309,29 +262,12 @@ export default function AdminPropertiesPage() {
                         ) : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Badge variant={ prop.status === 'For Sale' ? 'default' : prop.status === 'For Rent' ? 'secondary' : prop.status === 'Sold' ? 'destructive' : prop.status === 'Pending Approval' || prop.status === 'Draft' ? 'outline' : 'outline'}>
+                        <Badge variant={ prop.status === 'For Sale' ? 'default' : prop.status === 'For Rent' ? 'secondary' : prop.status === 'Sold' ? 'destructive' : 'outline'}>
                           {prop.status}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <Badge variant={getApprovalStatusBadgeVariant(prop.approvalStatus)}>
-                            {prop.approvalStatus === 'Pending' && <Hourglass className="w-3 h-3 mr-1" />}
-                            {prop.approvalStatus === 'Approved' && <Check className="w-3 h-3 mr-1" />}
-                            {prop.approvalStatus === 'Rejected' && <X className="w-3 h-3 mr-1" />}
-                            {prop.approvalStatus || 'N/A'}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-1">
                         <Button variant="outline" size="sm" asChild><Link href={`/properties/edit/${prop.id}`}>Edit</Link></Button>
-                        {prop.approvalStatus === 'Pending' && (
-                          <>
-                            <Button variant="success" size="sm" onClick={() => handleUpdateStatus(prop.id, 'Approved')}><Check className="w-4 h-4 mr-1" /> Approve</Button>
-                            <Button variant="destructive" size="sm" onClick={() => handleUpdateStatus(prop.id, 'Rejected')}><X className="w-4 h-4 mr-1" /> Reject</Button>
-                          </>
-                        )}
-                        {(prop.approvalStatus === 'Approved' || prop.approvalStatus === 'Rejected') && (
-                             <Button variant="outline" size="sm" onClick={() => handleUpdateStatus(prop.id, 'Pending')}><RotateCcw className="w-4 h-4 mr-1" /> Mark as Pending</Button>
-                        )}
                          <Button variant="destructive" size="sm" onClick={() => setPropertyToDelete(prop)}>Delete</Button>
                       </td>
                     </tr>
@@ -343,7 +279,7 @@ export default function AdminPropertiesPage() {
         </CardContent>
       </Card>
        <p className="text-xs text-muted-foreground text-center pt-4">
-        Property management with approval workflow. Search, filtering, and pagination can be added.
+        Property management with auto-approval. Search, filtering, and pagination can be added.
       </p>
     </div>
   );

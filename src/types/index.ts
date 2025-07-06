@@ -1,10 +1,9 @@
 
-
 import type { Types } from 'mongoose';
 
 export type UserRole = 'user' | 'agent' | 'admin';
-export type PropertyTypeEnum = 
-  'House' | 'Apartment' | 'Condo' | 'Townhouse' | 'Land' | 'Plot' | 
+export type PropertyTypeEnum =
+  'House' | 'Apartment' | 'Condo' | 'Townhouse' | 'Land' | 'Plot' |
   'Flat' | 'Upper Portion' | 'Lower Portion' | 'Farm House' | 'Room' | 'Penthouse' |
   'Residential Plot' | 'Commercial Plot' | 'Agricultural Land' | 'Industrial Land' | 'Plot File' | 'Plot Form' |
   'Office' | 'Shop' | 'Warehouse' | 'Factory' | 'Building' | 'Other';
@@ -13,7 +12,6 @@ export type PropertyApprovalStatusEnum = 'Pending' | 'Approved' | 'Rejected';
 export const blogCategories = ['Buying Guide', 'Selling Guide', 'Market Trends', 'General Guide', 'News'] as const;
 export type BlogCategory = (typeof blogCategories)[number];
 
-// User interface for frontend and API responses (excluding sensitive data like passwordHash)
 export interface UserProfile {
   id: string;
   name: string;
@@ -21,10 +19,10 @@ export interface UserProfile {
   role: UserRole;
   profilePictureUrl?: string;
   phone?: string;
-  specialty?: string; // Added for agents
+  specialty?: string;
   isEmailVerified?: boolean;
-  createdAt?: string; // ISO date string
-  updatedAt?: string; // ISO date string
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Agent extends UserProfile {
@@ -32,13 +30,10 @@ export interface Agent extends UserProfile {
   isVerified?: boolean;
 }
 
-
 export interface Property {
   id: string;
   address: string;
   city: string;
-  state: string;
-  zip: string;
   price: number;
   bedrooms: number;
   bathrooms: number;
@@ -46,19 +41,17 @@ export interface Property {
   description: string;
   images: string[];
   propertyType: PropertyTypeEnum;
-  yearBuilt?: number | null; // Allow null
+  yearBuilt?: number | null;
   features?: string[];
   latitude?: number;
   longitude?: number;
   status: PropertyStatusEnum;
-  postedDate: string; // ISO date string
   isVerified?: boolean;
   approvalStatus?: PropertyApprovalStatusEnum;
-  submittedBy?: UserProfile; 
-  agent?: Agent; // Agent specific details.
+  submittedBy?: UserProfile;
   views?: number;
-  createdAt?: string; // ISO date string
-  updatedAt?: string; // ISO date string
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Project {
@@ -66,18 +59,18 @@ export interface Project {
   name: string;
   location: string;
   developer: string;
-  imageUrl: string; // Make mandatory for consistency with model
+  imageUrl: string;
   dataAiHint?: string;
   description?: string;
-  keyHighlights: string[]; // Make mandatory for consistency with model
+  keyHighlights: string[];
   amenities?: string[];
   isVerified?: boolean;
   status?: 'Upcoming' | 'Trending' | 'Launched';
   timeline?: string;
   learnMoreLink?: string;
   submittedBy?: UserProfile;
-  createdAt?: string; // ISO date string
-  updatedAt?: string; // ISO date string
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Testimonial {
@@ -96,7 +89,7 @@ export interface BlogPost {
   title: string;
   slug: string;
   excerpt: string;
-  content: string; // Add full content for the blog post page
+  content: string;
   imageUrl: string;
   dataAiHint?: string;
   category: BlogCategory;
@@ -105,6 +98,6 @@ export interface BlogPost {
   status: 'published' | 'draft';
   approvalStatus?: PropertyApprovalStatusEnum;
   submittedBy?: UserProfile;
-  createdAt?: string; // ISO date string
-  updatedAt?: string; // ISO date string
+  createdAt?: string;
+  updatedAt?: string;
 }

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -85,12 +85,13 @@ export default function EditBlogPostPage() {
     }
   };
 
-  const getInitialFormData = (postData: BlogPost): Partial<BlogPostFormData> => {
+  const initialFormData = useMemo((): Partial<BlogPostFormData> => {
+    if (!post) return {};
     return {
-      ...postData,
-      tags: postData.tags?.join(', '), // Convert array to comma-separated string for the form
+      ...post,
+      tags: post.tags?.join(', '), // Convert array to comma-separated string for the form
     };
-  };
+  }, [post]);
   
   if (isAuthLoading || isLoadingData) {
     return <div className="flex justify-center items-center h-screen"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
@@ -136,7 +137,7 @@ export default function EditBlogPostPage() {
             onSubmit={handleUpdatePost} 
             isLoading={isSubmitting} 
             formType="edit"
-            initialData={getInitialFormData(post)}
+            initialData={initialFormData}
           />
         </CardContent>
       </Card>

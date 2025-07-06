@@ -80,13 +80,13 @@ export default function ContactPage() {
                         <Form {...form}>
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                                 <FormField control={form.control} name="name" render={({ field }) => (
-                                    <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="e.g., Ali Khan" {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
                                  <FormField control={form.control} name="email" render={({ field }) => (
                                     <FormItem><FormLabel>Email Address</FormLabel><FormControl><Input type="email" placeholder="you@example.com" {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
                                  <FormField control={form.control} name="subject" render={({ field }) => (
-                                    <FormItem><FormLabel>Subject</FormLabel><FormControl><Input placeholder="e.g., Inquiry about property #123" {...field} /></FormControl><FormMessage /></FormItem>
+                                    <FormItem><FormLabel>Subject</FormLabel><FormControl><Input placeholder="e.g., Inquiry about property in Gulberg" {...field} /></FormControl><FormMessage /></FormItem>
                                 )}/>
                                  <FormField control={form.control} name="message" render={({ field }) => (
                                     <FormItem><FormLabel>Message</FormLabel><FormControl><Textarea placeholder="Your message..." {...field} rows={5}/></FormControl><FormMessage /></FormItem>

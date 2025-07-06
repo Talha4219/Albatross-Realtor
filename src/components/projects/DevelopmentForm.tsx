@@ -81,13 +81,13 @@ export default function DevelopmentForm({ onSubmit, initialData, isLoading, form
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField control={form.control} name="name" render={({ field }) => (
-          <FormItem><FormLabel>Development Name*</FormLabel><FormControl><Input placeholder="e.g., Skyline Towers" {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Development Name*</FormLabel><FormControl><Input placeholder="e.g., Eighteen Islamabad" {...field} /></FormControl><FormMessage /></FormItem>
         )}/>
         <FormField control={form.control} name="location" render={({ field }) => (
-          <FormItem><FormLabel>Location*</FormLabel><FormControl><Input placeholder="e.g., Metropolis Downtown" {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Location*</FormLabel><FormControl><Input placeholder="e.g., Motorway M-2, Islamabad" {...field} /></FormControl><FormMessage /></FormItem>
         )}/>
         <FormField control={form.control} name="developer" render={({ field }) => (
-          <FormItem><FormLabel>Developer*</FormLabel><FormControl><Input placeholder="e.g., Prestige Developers Inc." {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Developer*</FormLabel><FormControl><Input placeholder="e.g., Ora Developers" {...field} /></FormControl><FormMessage /></FormItem>
         )}/>
         <FormField control={form.control} name="imageUrl" render={({ field }) => (
           <FormItem><FormLabel>Main Image URL*</FormLabel><FormControl><Input type="url" {...field} /></FormControl><FormMessage /></FormItem>
@@ -134,11 +134,11 @@ export default function DevelopmentForm({ onSubmit, initialData, isLoading, form
             </FormItem>
           )}/>
           <FormField control={form.control} name="timeline" render={({ field }) => (
-            <FormItem><FormLabel>Timeline</FormLabel><FormControl><Input placeholder="e.g., Completion Q4 2025" {...field} /></FormControl><FormMessage /></FormItem>
+            <FormItem><FormLabel>Timeline</FormLabel><FormControl><Input placeholder="e.g., Completion 2026" {...field} /></FormControl><FormMessage /></FormItem>
           )}/>
         </div>
         <FormField control={form.control} name="learnMoreLink" render={({ field }) => (
-          <FormItem><FormLabel>Learn More Link</FormLabel><FormControl><Input type="url" placeholder="https://example.com/project-details" {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Learn More Link</FormLabel><FormControl><Input type="url" placeholder="https://example.com/project-url" {...field} /></FormControl><FormMessage /></FormItem>
         )}/>
         <div className="pt-4">
           <Button type="submit" className="w-full" disabled={isLoading}>

@@ -1,17 +1,16 @@
 
 "use client";
 
-import React, { useState, Suspense, useMemo } from 'react';
+import React, { useState, Suspense, useMemo, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Building, Home, LandPlot, Warehouse, Factory, Briefcase, Store } from 'lucide-react';
+import { Loader2, Building, Home, LandPlot, Warehouse } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import PropertyForm, { type PropertyFormData } from '@/components/property/PropertyForm';
 import DevelopmentForm, { type DevelopmentFormData } from '@/components/projects/DevelopmentForm';
-import type { Project } from '@/types';
 
 // New commercial subtypes
 const commercialSubTypes = ['Office', 'Shop', 'Warehouse', 'Factory', 'Building', 'Other'] as const;
@@ -26,6 +25,7 @@ function AddListingContent() {
   
   const initialType = searchParams.get('type');
   
+  // Use a single state for the main listing type
   const [listingType, setListingType] = useState<'Property' | 'Plot' | 'Commercial Unit' | 'Development'>(
     initialType === 'Development' ? 'Development' :
     initialType === 'Commercial Unit' ? 'Commercial Unit' : 
@@ -49,12 +49,36 @@ function AddListingContent() {
 
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // This must be at the top level, before any conditional returns
+  const initialDataForForm = useMemo(() => {
+    const getInitialDataType = (): PropertyFormData['propertyType'] => {
+      switch (listingType) {
+        case 'Property': return propertySubType;
+        case 'Plot': return plotSubType;
+        case 'Commercial Unit': return commercialSubType;
+        default: return 'House';
+      }
+    };
+    return { propertyType: getInitialDataType(), status: purpose };
+  }, [listingType, propertySubType, plotSubType, commercialSubType, purpose]);
 
-  React.useEffect(() => {
-    if (!isAuthLoading && !user) {
-      router.replace('/auth/login?redirect=/add-listing');
+
+  useEffect(() => {
+    if (!isAuthLoading) {
+      if (!user) {
+        router.replace('/auth/login?redirect=/add-listing');
+      } else if (user.role === 'user') {
+        toast({
+          title: "Access Denied",
+          description: "Only agents and admins can add new listings.",
+          variant: "destructive",
+        });
+        router.replace('/');
+      }
     }
-  }, [user, isAuthLoading, router]);
+  }, [user, isAuthLoading, router, toast]);
+
 
   const handlePropertySubmit = async (data: PropertyFormData) => {
     if (!token) {
@@ -70,9 +94,28 @@ function AddListingContent() {
         body: JSON.stringify(data),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Failed to submit listing.");
-      toast({ title: "Listing Submitted", description: `Your listing has been submitted for approval.`, variant: "default" });
-      router.push(user?.role === 'admin' ? '/admin/properties' : '/my-properties');
+      if (!response.ok) {
+        let errorMsg = result.error || "Failed to submit listing.";
+        // Check for Zod validation details and append them
+        if (result.details?.fieldErrors) {
+            const fieldErrors = Object.entries(result.details.fieldErrors)
+                .map(([field, messages]) => `${field}: ${(messages as string[]).join(', ')}`)
+                .join('; ');
+            errorMsg += ` Details: ${fieldErrors}`;
+        }
+        throw new Error(errorMsg);
+      }
+      toast({ title: "Listing Submitted", description: `Your listing is now live.`, variant: "default" });
+      
+      // Correct redirection logic based on user role
+      if (user?.role === 'admin') {
+        router.push('/admin/properties');
+      } else if (user?.role === 'agent') {
+        router.push('/agent/properties');
+      } else {
+        router.push('/my-properties');
+      }
+
     } catch (error) {
       toast({ title: "Submission Failed", description: (error as Error).message, variant: "destructive" });
     } finally {
@@ -94,7 +137,7 @@ function AddListingContent() {
         });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "Failed to submit development project.");
-        toast({ title: "Project Submitted", description: `"${data.name}" has been added.`, variant: "default" });
+        toast({ title: "Project Submitted", description: `"${data.name}" has been added and is now live.`, variant: "default" });
         router.push('/admin/developments');
     } catch (error) {
         toast({ title: "Submission Failed", description: (error as Error).message, variant: "destructive" });
@@ -109,8 +152,10 @@ function AddListingContent() {
     { type: 'Commercial Unit', icon: Warehouse, label: 'Commercial Unit', description: 'List an office, shop, or warehouse.' },
     { type: 'Development', icon: Building, label: 'New Development', description: 'Add a new building project.' },
   ];
+  
+  const isDevelopmentFlow = listingType === 'Development';
 
-  if (isAuthLoading || !user) {
+  if (isAuthLoading || !user || user.role === 'user') {
     return (
       <div className="flex h-[50vh] w-full items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -118,21 +163,6 @@ function AddListingContent() {
       </div>
     );
   }
-
-  const getInitialDataType = (): PropertyFormData['propertyType'] => {
-     switch(listingType) {
-        case 'Property':
-            return propertySubType;
-        case 'Plot':
-            return plotSubType;
-        case 'Commercial Unit': 
-            return commercialSubType;
-        default:
-            return 'House';
-    }
-  }
-  
-  const isDevelopmentFlow = listingType === 'Development';
 
   return (
     <div className="space-y-8">
@@ -275,7 +305,7 @@ function AddListingContent() {
       <Card>
         <CardHeader>
           <CardTitle>Enter {isDevelopmentFlow ? 'Development' : 'Listing'} Details</CardTitle>
-          <CardDescription>Fill out the form below. All listings are subject to admin approval.</CardDescription>
+          <CardDescription>Provide the details for your listing.</CardDescription>
         </CardHeader>
         <CardContent>
            { isDevelopmentFlow ? (
@@ -288,10 +318,7 @@ function AddListingContent() {
              <PropertyForm 
               onSubmit={handlePropertySubmit} 
               isLoading={isSubmitting} 
-              initialData={{ 
-                propertyType: getInitialDataType(),
-                status: purpose,
-              }}
+              initialData={initialDataForForm}
               formType='create'
             />
            )}

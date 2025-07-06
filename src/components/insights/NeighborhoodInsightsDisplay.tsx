@@ -1,16 +1,18 @@
+
 "use client";
 
 import type { NeighborhoodInsightsOutput } from '@/ai/flows/neighborhood-insights';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { School, ShoppingBag, TrendingUp, AlertCircle } from 'lucide-react';
+import { School, ShoppingBag, TrendingUp, AlertCircle, MapPin } from 'lucide-react';
 
 interface NeighborhoodInsightsDisplayProps {
   insights: NeighborhoodInsightsOutput | null;
   error?: string | null;
+  location: string;
 }
 
-export default function NeighborhoodInsightsDisplay({ insights, error }: NeighborhoodInsightsDisplayProps) {
+export default function NeighborhoodInsightsDisplay({ insights, error, location }: NeighborhoodInsightsDisplayProps) {
   if (error) {
     return (
       <Card className="mt-8 border-destructive bg-destructive/10">
@@ -34,8 +36,9 @@ export default function NeighborhoodInsightsDisplay({ insights, error }: Neighbo
   return (
     <Card className="mt-8 shadow-xl">
       <CardHeader>
-        <CardTitle className="font-headline text-2xl text-center text-primary">
-          Neighborhood Insights for: <span className="text-accent">{/* Location could be passed here if known */}</span>
+        <CardTitle className="font-headline text-2xl text-center text-primary flex items-center justify-center gap-2">
+            <MapPin className="w-6 h-6"/>
+            Neighborhood Insights for: <span className="text-accent">{location}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>

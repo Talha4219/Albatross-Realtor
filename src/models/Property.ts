@@ -1,57 +1,44 @@
 
-
-import mongoose, { Document, Schema, Model, Types } from 'mongoose';
-import './User'; // Ensure User model is registered for population
+import mongoose, { Document, Schema, Model } from 'mongoose';
+import './User';
 import type { Property as PropertyType, PropertyTypeEnum, PropertyStatusEnum, PropertyApprovalStatusEnum } from '@/types';
 
-export interface IProperty extends Omit<PropertyType, 'id' | 'postedDate' | 'propertyType' | 'status' | 'approvalStatus' | 'submittedBy'>, Document {
-  id?: string;
-  postedDate: Date;
-  propertyType: PropertyTypeEnum;
-  status: PropertyStatusEnum;
-  approvalStatus: PropertyApprovalStatusEnum;
-  submittedBy?: mongoose.Schema.Types.ObjectId; // Link to a User model
-  views: number;
-}
+const allPropertyTypes: PropertyTypeEnum[] = [
+    'House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot',
+    'Flat', 'Upper Portion', 'Lower Portion', 'Farm House', 'Room', 'Penthouse',
+    'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form',
+    'Office', 'Shop', 'Warehouse', 'Factory', 'Building', 'Other'
+];
 
+const allPropertyStatuses: PropertyStatusEnum[] = ['For Sale', 'For Rent', 'Sold', 'Pending Approval', 'Draft'];
+const allApprovalStatuses: PropertyApprovalStatusEnum[] = ['Pending', 'Approved', 'Rejected'];
+
+export interface IProperty extends Omit<PropertyType, 'id'>, Document {}
 
 const PropertySchema = new Schema<IProperty>({
-  address: { type: String, required: true },
-  city: { type: String, required: true },
-  state: { type: String, required: true },
-  zip: { type: String, required: true },
-  price: { type: Number, required: true },
-  bedrooms: { type: Number, required: true },
-  bathrooms: { type: Number, required: true },
-  areaSqFt: { type: Number, required: true },
-  description: { type: String, required: true },
-  images: [{ type: String }],
-  propertyType: { 
-    type: String, 
-    enum: [
-        'House', 'Apartment', 'Condo', 'Townhouse', 'Land', 'Plot', 
-        'Flat', 'Upper Portion', 'Lower Portion', 'Farm House', 'Room', 'Penthouse',
-        'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form',
-        'Office', 'Shop', 'Warehouse', 'Factory', 'Building', 'Other'
-    ], 
-    required: true 
-  },
-  yearBuilt: Number,
-  features: [{ type: String }],
-  latitude: Number,
-  longitude: Number,
-  status: { type: String, enum: ['For Sale', 'For Rent', 'Sold', 'Pending Approval', 'Draft'], required: true, default: 'Pending Approval' },
-  postedDate: { type: Date, required: true, default: Date.now },
-  isVerified: { type: Boolean, default: false },
-  approvalStatus: { type: String, enum: ['Pending', 'Approved', 'Rejected'], required: true, default: 'Pending' },
-  submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false },
+  address: { type: String, required: true, trim: true },
+  city: { type: String, required: true, trim: true },
+  price: { type: Number, required: true, min: 1 },
+  bedrooms: { type: Number, required: true, min: 0 },
+  bathrooms: { type: Number, required: true, min: 0 },
+  areaSqFt: { type: Number, required: true, min: 1 },
+  description: { type: String, required: true, trim: true },
+  images: { type: [String], required: true, default: [] },
+  propertyType: { type: String, enum: allPropertyTypes, required: true },
+  yearBuilt: { type: Number, sparse: true },
+  features: { type: [String], default: [] },
+  latitude: { type: Number, sparse: true },
+  longitude: { type: Number, sparse: true },
+  status: { type: String, enum: allPropertyStatuses, required: true, default: 'For Sale' },
+  isVerified: { type: Boolean, default: true },
+  approvalStatus: { type: String, enum: allApprovalStatuses, required: true, default: 'Pending' },
+  submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   views: { type: Number, default: 0 },
 }, {
   timestamps: true,
   toJSON: {
     virtuals: true,
     transform: (doc, ret) => {
-      ret.id = ret._id.toString();
       delete ret._id;
       delete ret.__v;
     }
@@ -59,16 +46,13 @@ const PropertySchema = new Schema<IProperty>({
   toObject: {
     virtuals: true,
     transform: (doc, ret) => {
-      ret.id = ret._id.toString();
       delete ret._id;
       delete ret.__v;
     }
   }
 });
 
-PropertySchema.virtual('id').get(function() {
-  return this._id.toHexString();
-});
+PropertySchema.index({ address: 'text', city: 'text', description: 'text', propertyType: 'text' });
 
 const Property: Model<IProperty> = mongoose.models.Property || mongoose.model<IProperty>('Property', PropertySchema);
 

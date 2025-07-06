@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useTransition } from 'react';
@@ -17,7 +18,7 @@ const FormSchema = z.object({
 type FormData = z.infer<typeof FormSchema>;
 
 interface NeighborhoodInsightsFormProps {
-  onInsightsGenerated: (insights: NeighborhoodInsightsOutput | null, error?: string) => void;
+  onInsightsGenerated: (insights: NeighborhoodInsightsOutput | null, location: string, error?: string) => void;
   defaultLocation?: string;
   generateInsightsAction: (input: { location: string }) => Promise<NeighborhoodInsightsOutput>;
 }
@@ -36,10 +37,10 @@ export default function NeighborhoodInsightsForm({ onInsightsGenerated, defaultL
     startTransition(async () => {
       try {
         const result = await generateInsightsAction({ location: data.location });
-        onInsightsGenerated(result);
+        onInsightsGenerated(result, data.location);
       } catch (error) {
         console.error("Error generating insights:", error);
-        onInsightsGenerated(null, (error as Error).message || "Failed to generate insights.");
+        onInsightsGenerated(null, data.location, (error as Error).message || "Failed to generate insights.");
       }
     });
   };
@@ -52,7 +53,7 @@ export default function NeighborhoodInsightsForm({ onInsightsGenerated, defaultL
           Get Neighborhood Insights
         </CardTitle>
         <CardDescription>
-          Enter a location (e.g., "San Francisco, CA") to get AI-powered insights on schools, amenities, and market trends.
+          Enter a location (e.g., "Clifton, Karachi") to get AI-powered insights on schools, amenities, and market trends.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -65,7 +66,7 @@ export default function NeighborhoodInsightsForm({ onInsightsGenerated, defaultL
                 <FormItem>
                   <FormLabel>Location</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Austin, TX" {...field} className="text-base"/>
+                    <Input placeholder="e.g., Clifton, Karachi" {...field} className="text-base"/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

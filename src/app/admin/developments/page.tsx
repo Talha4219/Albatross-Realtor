@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
@@ -175,7 +174,7 @@ export default function AdminDevelopmentsPage() {
           <p className="text-muted-foreground">{getPageDescription()}</p>
         </div>
         <Button asChild>
-          <Link href="/admin/developments/new">
+          <Link href="/add-listing?type=Development">
             <PlusCircle className="mr-2 h-4 w-4" /> Add New Project
           </Link>
         </Button>

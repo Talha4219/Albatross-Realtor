@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter, SidebarSeparator, SidebarGroupLabel } from '@/components/ui/sidebar'; 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const agentNavItems = [
   { href: '/agent/dashboard', label: 'Dashboard', icon: LayoutGrid, type: 'item' },
@@ -24,7 +25,10 @@ const agentNavItems = [
 
 export default function AgentSidebar() {
   const pathname = usePathname();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
+
+  const agentInitials = user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                       user?.email ? user.email.substring(0, 2).toUpperCase() : "AG";
 
   return (
     <Sidebar side="left" variant="sidebar" collapsible="icon">
@@ -65,7 +69,16 @@ export default function AgentSidebar() {
           })}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border p-2">
+      <SidebarFooter className="border-t border-sidebar-border p-2 space-y-2">
+         <div className="flex items-center gap-2 p-2 group-data-[collapsible=icon]:justify-center">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={user?.profilePictureUrl || ''} alt={user?.name || "Agent"} data-ai-hint="person avatar"/>
+              <AvatarFallback>{agentInitials}</AvatarFallback>
+            </Avatar>
+            <div className="text-sm group-data-[collapsible=icon]:hidden">
+              <p className="font-semibold text-sidebar-foreground truncate max-w-[120px]">{user?.name || user?.email || 'Agent User'}</p>
+            </div>
+          </div>
           <SidebarMenuButton
             onClick={logout}
             className="w-full group-data-[collapsible=icon]:justify-center"

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -44,7 +44,7 @@ export default function NewBlogPostPage() {
       if (response.ok && result.success) {
         toast({
           title: "Blog Post Submitted",
-          description: `Your post "${result.data.title}" has been submitted for approval.`,
+          description: `Your post is now live.`,
         });
         // Redirect to main blog page or a user's "my posts" page
         router.push('/blog');
@@ -62,6 +62,10 @@ export default function NewBlogPostPage() {
       setIsSubmitting(false);
     }
   };
+  
+  const initialData = useMemo(() => ({
+      author: user?.name,
+  }), [user?.name]);
 
   if (isAuthLoading || !user) {
     return (
@@ -90,15 +94,14 @@ export default function NewBlogPostPage() {
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><BookPlus className="w-5 h-5 text-primary"/> Post Content</CardTitle>
-          <CardDescription>Fields marked with * are required. Your post will be reviewed by an admin before publishing.</CardDescription>
+          <CardDescription>Fields marked with * are required. Your post will be published immediately.</CardDescription>
         </CardHeader>
         <CardContent>
           <BlogPostForm 
             onSubmit={handleCreatePost} 
             isLoading={isSubmitting} 
             formType="create"
-            // Pre-fill author name from logged-in user context
-            initialData={{ author: user.name }}
+            initialData={initialData}
           />
         </CardContent>
       </Card>

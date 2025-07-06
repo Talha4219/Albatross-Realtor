@@ -4,7 +4,7 @@ import type { Testimonial as TestimonialType } from '@/types';
 
 export interface ITestimonial extends Omit<TestimonialType, 'id'>, Document {}
 
-const TestimonialSchemaField: Record<keyof Omit<TestimonialType, 'id' | 'createdAt' | 'updatedAt'>, any> = {
+const TestimonialSchema = new Schema<ITestimonial>({
   name: { type: String, required: true, trim: true },
   role: { type: String, required: true, trim: true },
   quote: { type: String, required: true, trim: true },
@@ -12,14 +12,11 @@ const TestimonialSchemaField: Record<keyof Omit<TestimonialType, 'id' | 'created
   dataAiHint: { type: String, trim: true },
   rating: { type: Number, required: true, min: 0, max: 5 },
   successTag: { type: String, trim: true },
-};
-
-const TestimonialSchema = new Schema<ITestimonial>(TestimonialSchemaField, {
+}, {
   timestamps: true,
   toJSON: {
     virtuals: true,
     transform: (doc, ret) => {
-      ret.id = ret._id.toString();
       delete ret._id;
       delete ret.__v;
     }
@@ -27,15 +24,10 @@ const TestimonialSchema = new Schema<ITestimonial>(TestimonialSchemaField, {
   toObject: {
     virtuals: true,
     transform: (doc, ret) => {
-      ret.id = ret._id.toString();
       delete ret._id;
       delete ret.__v;
     }
   }
-});
-
-TestimonialSchema.virtual('id').get(function() {
-  return this._id.toHexString();
 });
 
 const TestimonialModel: Model<ITestimonial> = mongoose.models.Testimonial || mongoose.model<ITestimonial>('Testimonial', TestimonialSchema);

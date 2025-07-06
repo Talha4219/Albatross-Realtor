@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -112,9 +111,9 @@ export default function NewProjectsShowcase() {
             <Link href="/new-projects">View All New Projects</Link>
           </Button>
           <div className="text-sm text-muted-foreground space-x-4">
-            <Link href="/agents/find" className="hover:text-primary hover:underline">[Find an Agent for Project Inquiries]</Link>
+            <Link href="/agents" className="hover:text-primary hover:underline">Find an Agent for Project Inquiries</Link>
             <span className="text-muted-foreground/50">|</span>
-            <Link href="/market-trends" className="hover:text-primary hover:underline">[Explore Market Trends]</Link>
+            <Link href="/market-trends" className="hover:text-primary hover:underline">Explore Market Trends</Link>
           </div>
           <p className="text-xs text-muted-foreground italic">
             Have questions about new projects? Ask our AI! (Bottom Right) &rarr;

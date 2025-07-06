@@ -50,14 +50,14 @@ export default function TestimonialForm({ onSubmit, initialData, isLoading }: Te
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormField control={form.control} name="name" render={({ field }) => (
-            <FormItem><FormLabel>Client Name*</FormLabel><FormControl><Input placeholder="e.g., Jane Doe" {...field} /></FormControl><FormMessage /></FormItem>
+            <FormItem><FormLabel>Client Name*</FormLabel><FormControl><Input placeholder="e.g., Fatima Ahmed" {...field} /></FormControl><FormMessage /></FormItem>
           )} />
           <FormField control={form.control} name="role" render={({ field }) => (
-            <FormItem><FormLabel>Client Role*</FormLabel><FormControl><Input placeholder="e.g., Homebuyer" {...field} /></FormControl><FormMessage /></FormItem>
+            <FormItem><FormLabel>Client Role*</FormLabel><FormControl><Input placeholder="e.g., First-time Homebuyer" {...field} /></FormControl><FormMessage /></FormItem>
           )} />
         </div>
         <FormField control={form.control} name="quote" render={({ field }) => (
-          <FormItem><FormLabel>Quote*</FormLabel><FormControl><Textarea placeholder="The testimonial content..." {...field} rows={4} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Quote*</FormLabel><FormControl><Textarea placeholder="Tell us about your great experience..." {...field} rows={4} /></FormControl><FormMessage /></FormItem>
         )} />
         <FormField
           control={form.control}
@@ -87,7 +87,7 @@ export default function TestimonialForm({ onSubmit, initialData, isLoading }: Te
             )}/>
         </div>
         <FormField control={form.control} name="successTag" render={({ field }) => (
-          <FormItem><FormLabel>Success Tag</FormLabel><FormControl><Input placeholder="e.g., Found Home in 2 Weeks" {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Success Tag</FormLabel><FormControl><Input placeholder="e.g., Sold in 30 Days" {...field} /></FormControl><FormMessage /></FormItem>
         )} />
         
         <Button type="submit" className="w-full" disabled={isLoading}>

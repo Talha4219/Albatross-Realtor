@@ -104,7 +104,7 @@ export default function AgentContactDialog({ agent, propertyAddress }: AgentCont
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Your Name</FormLabel>
-                  <FormControl><Input placeholder="John Doe" {...field} /></FormControl>
+                  <FormControl><Input placeholder="e.g., Ali Khan" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )}

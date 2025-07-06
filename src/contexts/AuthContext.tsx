@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -22,7 +21,7 @@ interface AuthContextType {
   token: string | null; 
   isLoading: boolean;
   login: (email: string, password: string) => Promise<User | null>;
-  signup: (name: string, email: string, password: string, role: 'user' | 'agent', phone?: string) => Promise<any>;
+  signup: (name: string, email: string, password: string, role: 'user' | 'agent', phone?: string, profilePictureUrl?: string) => Promise<any>;
   logout: () => void;
   updateUser: (updatedUserData: Partial<User>) => void;
   loginWithToken: (token: string, userData: User) => void;
@@ -84,20 +83,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const signup = async (name: string, email: string, password: string, role: 'user' | 'agent', phone?: string) => {
+  const signup = async (name: string, email: string, password: string, role: 'user' | 'agent', phone?: string, profilePictureUrl?: string) => {
     setIsLoading(true);
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, role, phone }),
+        body: JSON.stringify({ name, email, password, role, phone, profilePictureUrl }),
       });
       const result = await response.json();
-      // If signup returns user data and a token, log them in
       if (result.success && result.data?.user && result.data?.token) {
         loginWithToken(result.data.token, result.data.user);
       }
-      return result; // Return the full API response to the component
+      return result;
     } catch (error) {
       console.error("Signup API call failed:", error);
       return { success: false, error: (error as Error).message };

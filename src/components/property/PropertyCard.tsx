@@ -42,8 +42,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     }
   };
   
-  const postedDate = new Date(property.postedDate);
-  const timeAgo = formatDistanceToNow(postedDate, { addSuffix: true });
+  const timeAgo = property.createdAt ? formatDistanceToNow(new Date(property.createdAt), { addSuffix: true }) : 'recently';
 
   const imageToDisplay = 
     property.images && property.images.length > 0 && isValidImageUrl(property.images[0])
@@ -104,7 +103,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             {property.address}
           </CardTitle>
           <p className="text-sm text-muted-foreground flex items-center mt-1">
-            <MapPin className="w-4 h-4 mr-1 shrink-0" /> {property.city}, {property.state} {property.zip}
+            <MapPin className="w-4 h-4 mr-1 shrink-0" /> {property.city}
           </p>
           <div className="mt-3 grid grid-cols-3 gap-2 text-sm text-foreground">
             <div className="flex items-center gap-1">
@@ -124,7 +123,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         <CardFooter className="p-4 pt-0 border-t mt-auto">
           <div className="w-full flex justify-between items-center text-xs text-muted-foreground">
             <span>{property.propertyType}</span>
-            <span>Posted {timeAgo}</span>
+            {property.createdAt && <span>Posted {timeAgo}</span>}
           </div>
         </CardFooter>
       </Card>
