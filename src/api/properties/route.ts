@@ -16,22 +16,22 @@ const propertyStatuses: [PropertyStatusEnum, ...PropertyStatusEnum[]] = ['For Sa
 
 
 const PropertyAPISchema = z.object({
-  address: z.string().min(5, "Address must be at least 5 characters."),
-  city: z.string().min(2, "City must be at least 2 characters."),
-  price: z.coerce.number({ required_error: "Price is required." }).min(1, 'Price must be at least PKR 1.'),
-  bedrooms: z.coerce.number().int().min(0, "Bedrooms must be 0 or more."),
-  bathrooms: z.coerce.number().min(0, "Bathrooms must be 0 or more."),
-  areaSqFt: z.coerce.number({ required_error: "Area is required." }).min(1, 'Area must be at least 1 sq. ft.'),
-  description: z.string().min(20, "Description must be at least 20 characters."),
-  propertyType: z.enum(propertyTypes),
-  status: z.enum(['For Sale', 'For Rent', 'Draft']),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  price: z.coerce.number().optional(),
+  bedrooms: z.coerce.number().int().optional(),
+  bathrooms: z.coerce.number().optional(),
+  areaSqFt: z.coerce.number().optional(),
+  description: z.string().optional(),
+  propertyType: z.enum(propertyTypes).optional(),
+  status: z.enum(['For Sale', 'For Rent', 'Draft']).optional(),
   yearBuilt: z.coerce.number().optional().nullable().refine(val => val === null || val === undefined || (val >= 1800 && val <= new Date().getFullYear() + 5), {
     message: `Year built must be between 1800 and ${new Date().getFullYear() + 5} or empty.`
   }),
-  images: z.array(z.string().min(1)).min(1, "At least one image is required."),
+  images: z.array(z.string()).optional(),
   features: z.array(z.string()).optional(),
 }).refine(data => {
-    if (['Plot', 'Land', 'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form'].includes(data.propertyType)) {
+    if (data.propertyType && ['Plot', 'Land', 'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form'].includes(data.propertyType)) {
         return data.bedrooms === 0 && data.bathrooms === 0;
     }
     return true;
@@ -155,9 +155,8 @@ export async function POST(request: NextRequest) {
       submittedBy: new mongoose.Types.ObjectId(userId),
     };
 
-    // Admins can auto-approve their own listings.
-    // For agents, the default 'Pending' from the model will be used.
-    if (userRole === 'admin') {
+    // Admins and Agents can auto-approve their own listings.
+    if (userRole === 'admin' || userRole === 'agent') {
       newPropertyData.approvalStatus = 'Approved';
     }
 

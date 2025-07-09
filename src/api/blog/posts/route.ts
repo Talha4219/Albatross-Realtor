@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ success: true, data: posts.map(p => p.toObject()) });
     } catch (error) {
         console.error("API Error fetching blog posts:", error);
-        return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
+        return NextResponse.json({ success: false, error: 'Server error while fetching posts.' }, { status: 500 });
     }
 }
 
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
             author: postData.author || userName || 'Anonymous',
             tags: tags ? tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
             submittedBy: new mongoose.Types.ObjectId(userId),
-            approvalStatus: userRole === 'admin' ? 'Approved' : 'Pending',
+            approvalStatus: (userRole === 'admin' || userRole === 'agent') ? 'Approved' : 'Pending',
         });
 
         return NextResponse.json({ success: true, data: newPost.toObject() }, { status: 201 });

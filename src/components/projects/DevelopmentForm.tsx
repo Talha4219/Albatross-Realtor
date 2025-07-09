@@ -15,20 +15,21 @@ import { Loader2, PlusCircle, Trash2 } from 'lucide-react';
 const projectStatuses = ['Upcoming', 'Trending', 'Launched'] as const;
 
 const developmentFormSchema = z.object({
-  name: z.string().min(3, "Name must be at least 3 characters."),
-  location: z.string().min(3, "Location must be at least 3 characters."),
-  developer: z.string().min(2, "Developer name must be at least 2 characters."),
-  imageUrl: z.string().url("Image URL must be valid.").default('https://placehold.co/600x400.png'),
+  name: z.string().optional(),
+  location: z.string().optional(),
+  developer: z.string().optional(),
+  imageUrl: z.string().url("Image URL must be valid.").optional(),
   dataAiHint: z.string().optional().refine(value => !value || value.split(' ').length <= 2, {
     message: "AI Hint should be one or two keywords.",
   }),
   description: z.string().optional(),
-  keyHighlights: z.array(z.string().min(1, "Highlight cannot be empty.")).min(1, "At least one key highlight is required."),
-  amenities: z.array(z.string().min(1, "Amenity cannot be empty.")).optional(),
+  keyHighlights: z.array(z.string()).optional(),
+  amenities: z.array(z.string()).optional(),
   status: z.enum(projectStatuses).optional(),
   timeline: z.string().optional(),
   learnMoreLink: z.string().url("Learn more link must be a valid URL.").optional(),
 });
+
 
 export type DevelopmentFormData = z.infer<typeof developmentFormSchema>;
 
@@ -81,16 +82,16 @@ export default function DevelopmentForm({ onSubmit, initialData, isLoading, form
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField control={form.control} name="name" render={({ field }) => (
-          <FormItem><FormLabel>Development Name*</FormLabel><FormControl><Input placeholder="e.g., Eighteen Islamabad" {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Development Name</FormLabel><FormControl><Input placeholder="e.g., Eighteen Islamabad" {...field} /></FormControl><FormMessage /></FormItem>
         )}/>
         <FormField control={form.control} name="location" render={({ field }) => (
-          <FormItem><FormLabel>Location*</FormLabel><FormControl><Input placeholder="e.g., Motorway M-2, Islamabad" {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="e.g., Motorway M-2, Islamabad" {...field} /></FormControl><FormMessage /></FormItem>
         )}/>
         <FormField control={form.control} name="developer" render={({ field }) => (
-          <FormItem><FormLabel>Developer*</FormLabel><FormControl><Input placeholder="e.g., Ora Developers" {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Developer</FormLabel><FormControl><Input placeholder="e.g., Ora Developers" {...field} /></FormControl><FormMessage /></FormItem>
         )}/>
         <FormField control={form.control} name="imageUrl" render={({ field }) => (
-          <FormItem><FormLabel>Main Image URL*</FormLabel><FormControl><Input type="url" {...field} /></FormControl><FormMessage /></FormItem>
+          <FormItem><FormLabel>Main Image URL</FormLabel><FormControl><Input type="url" {...field} /></FormControl><FormMessage /></FormItem>
         )}/>
         <FormField control={form.control} name="dataAiHint" render={({ field }) => (
           <FormItem><FormLabel>Image AI Hint (1-2 keywords)</FormLabel><FormControl><Input placeholder="e.g., modern building" {...field} /></FormControl><FormMessage /></FormItem>
@@ -99,7 +100,7 @@ export default function DevelopmentForm({ onSubmit, initialData, isLoading, form
           <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Briefly describe the project..." {...field} /></FormControl><FormMessage /></FormItem>
         )}/>
         <div>
-          <FormLabel>Key Highlights*</FormLabel>
+          <FormLabel>Key Highlights</FormLabel>
           {highlightFields.map((field, index) => (
             <FormField key={field.id} control={form.control} name={`keyHighlights.${index}`} render={({ field: itemField }) => (
               <FormItem className="flex items-center gap-2 mt-1">

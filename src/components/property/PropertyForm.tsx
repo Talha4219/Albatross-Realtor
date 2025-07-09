@@ -25,22 +25,22 @@ const propertyTypes: PropertyTypeType[] = [
 const userSettablePropertyStatuses: PropertyStatusEnum[] = ['For Sale', 'For Rent', 'Draft']; 
 
 const PropertyFormSchema = z.object({
-  address: z.string().min(5, "Address must be at least 5 characters."),
-  city: z.string().min(2, "City must be at least 2 characters."),
-  price: z.coerce.number({ required_error: "Price is required." }).min(1, "Price must be at least PKR 1."),
-  bedrooms: z.coerce.number().int().min(0, "Bedrooms must be 0 or more."),
-  bathrooms: z.coerce.number().min(0, "Bathrooms must be 0 or more."),
-  areaSqFt: z.coerce.number({ required_error: "Area is required." }).min(1, "Area must be at least 1."),
-  description: z.string().min(20, "Description must be at least 20 characters."),
-  propertyType: z.enum(propertyTypes),
-  status: z.enum(userSettablePropertyStatuses), 
+  address: z.string().optional(),
+  city: z.string().optional(),
+  price: z.coerce.number().optional(),
+  bedrooms: z.coerce.number().int().optional(),
+  bathrooms: z.coerce.number().optional(),
+  areaSqFt: z.coerce.number().optional(),
+  description: z.string().optional(),
+  propertyType: z.enum(propertyTypes).optional(),
+  status: z.enum(userSettablePropertyStatuses).optional(), 
   yearBuilt: z.coerce.number().optional().nullable().refine(val => val === null || val === undefined || (val >= 1800 && val <= new Date().getFullYear() + 5), {
     message: `Year built must be between 1800 and ${new Date().getFullYear() + 5}. Leave empty if not applicable.`
   }),
-  images: z.array(z.string().min(1, "Image data cannot be empty.")).min(1, "At least one image is required."),
+  images: z.array(z.string()).optional(),
   features: z.array(z.string()).optional(),
 }).refine(data => {
-    if (['Plot', 'Land', 'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form'].includes(data.propertyType)) {
+    if (data.propertyType && ['Plot', 'Land', 'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form'].includes(data.propertyType)) {
         return data.bedrooms === 0 && data.bathrooms === 0;
     }
     return true;
@@ -99,7 +99,7 @@ const featureCategories = [
 export default function PropertyForm({ onSubmit, initialData, isLoading, formType = 'create' }: PropertyFormProps) {
   const defaultValues = useMemo(() => ({
     address: '', city: '', price: undefined, bedrooms: 0, bathrooms: 0, areaSqFt: undefined, description: '', 
-    propertyType: 'House', status: 'For Sale' as const, yearBuilt: null, images: [], features: [],
+    propertyType: 'House' as PropertyTypeType, status: 'For Sale' as const, yearBuilt: null, images: [], features: [],
     ...initialData,
   }), [initialData]);
 
@@ -113,7 +113,8 @@ export default function PropertyForm({ onSubmit, initialData, isLoading, formTyp
 
   const currentPropertyType = form.watch('propertyType');
   const plotTypes: PropertyTypeType[] = ['Plot', 'Land', 'Residential Plot', 'Commercial Plot', 'Agricultural Land', 'Industrial Land', 'Plot File', 'Plot Form'];
-  const isPlotOrLand = plotTypes.includes(currentPropertyType);
+  const isPlotOrLand = currentPropertyType ? plotTypes.includes(currentPropertyType) : false;
+
 
   useEffect(() => {
     form.reset(defaultValues);
